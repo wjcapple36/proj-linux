@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/light">
+        <file alias="gray">res/gray.bmp</file>
+        <file alias="pink">res/pink.bmp</file>
+        <file alias="red">res/red.bmp</file>
+        <file alias="yellow">res/yellow.bmp</file>
+    </qresource>
+</RCC>

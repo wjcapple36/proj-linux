@@ -1,0 +1,89 @@
+#ifndef CONSTANT_H
+#define CONSTANT_H
+//unit num power1, power2, mcu, otdr, olc, opc,adn so on
+#define     NUM_SUBRACK                         16
+#define     NUM_CARD                                12
+#define     NUM_COMM_CARD                   9
+#define     NUM_PORT                                 8
+#define     HOST_NO                                    0
+#define     MAX_F_DB                                   50
+#define     MAX_SELSPAC                            20
+
+enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM};
+#define      MAX_PT_NUM                  16000
+#define      MAX_EVENT_NUM           500
+#define      INVALID_VALUE              100     //OTDR计算参数时段无效值
+//定义事件类型 开始，反射，非反射，结束
+#define      EVENT_TYPE_START      0
+#define      EVENT_TYPE_REFLEC      1
+#define      EVENT_TYPE_NO_REFLEC      2
+#define      EVENT_TYPE_END                  3
+
+//Otdr 测量模式
+
+//空闲状态
+#define  OTDR_MOD_IDLE                      0
+//告警测量
+#define  OTDR_MOD_ALARM                      1
+//点名测量
+#define  OTDR_MOD_APPOINT                     2
+
+//Otdr测量阶段
+//测量未开始
+#define OTDR_MEASUR_STAGE_0             0
+//等待回应
+#define OTDR_MEASUR_STAGE_1             1
+//等待曲线
+#define OTDR_MEASUR_STAGE_2             2
+
+//定义网管存在或者消失
+#define  NM_LOST                                        0
+#define  NM_EXIST                                        1
+//定义命令码
+////////////////////////////////////////////////////////////////////////////////
+// 命令类型:网管与MCU之间的通信，命令格式，id--src--dst--cmd
+//NM net manager  mcu 工控机 card 板卡
+#define ID_NM_MCU_GET_CARD_TYPE             0x80000005
+#define ID_MCU_NM_RE_CARD_TYPE               0x80000006
+#define ID_MCU_NM_RE_CARD_VERSION        0x80000036
+//MCU与板卡通信
+#define ID_MCU_CARD_GET_DEVTYPE               0x60000000	///<工控板查询设备板卡类型信息
+#define ID_CARD_MCU_RET_DEVTYPE               0x60000001	///<返回设备类型信息
+#define ID_CU_NOTE_NET               0x60000002///<工控板与CU通信的网段选择切换通知
+#define ID_CU_NOTE_MANAGE		0x60000003///<CU通知工控板网管的连接状态
+
+//错误应答码
+#define ID_MCU_NM_RCODE_OK                   0       //一切顺利，ok
+#define ID_MCU_NM_RCODE_NO_CARD                   1       //板卡不存在
+#define ID_MCU_NM_RCODE_COMMU_EROR                   2       //通信异常
+#define ID_MCU_NM_RCODE_FRAME_EROR                   3       //从机号错误
+#define ID_MCU_NM_RCODE_CARD_EROR                   4       //槽位号错误
+#define ID_MCU_NM_RCODE_DEV_TYPE_EROR                   5       //设备类型不一致
+#define ID_MCU_NM_RCODE_PARA_EROR                   6       //参数非法
+#define ID_MCU_NM_RCODE_PARA_NOT_SAVE                   7       //命令参数无法保存
+#define ID_MCU_NM_RCODE_CMD_EXIST                   8       //已经存在一条命令
+#define ID_MCU_NM_RCODE_OTDR_EROR                   9       //测量异常
+#define ID_MCU_NM_RCODE_OTDR_TIMEOUT                   10       //测量超时
+#define ID_MCU_NM_RCODE_UPDATA_EROR                   11       //升级异常
+#define ID_MCU_NM_RCODE_CMD_INVALIDE                   12       //无效命令
+
+#define ID_GET_OPM_OLP_RAYPOWER	0x60000004///<工控板查询某槽位上OPM或OLP模块总的光功率告警
+#define ID_CMD_OSW_SWITCH		0x60000005///<工控板通知OSW模块切换到某路
+#define ID_CMD_OTDR_TEST		0x60000006///<OLP模块向工控机请求OTDR测试
+#define ID_CMD_OLP_START_OTDR	0x60000007///<工控板通知OLP模块OTDR测试开始
+#define ID_CMD_OLP_FINISH_OTDR	0x60000008///<工控板通知OLP模块OTDR测试完成
+#define ID_CMD_SMS_TEXT			26	///<网管发送短信内容到RTU
+#define ID_CMD_SMS_ERROR		27	///<RTU返回短信操作返回码
+
+#define ID_ALARM_MEASUR			0x80000035	//OPM告警之后的otdr测量
+#define ID_ALARM_CURV			0x80000035	///告警测量得到的曲线
+#define ID_APPOINT_MEASUR			0x80000023	// 点名测量
+#define ID_APPOINT_CURV			0x80000024	//店名测量得到的曲线
+
+#define ID_GET_VERSION			0x80000035	///<网管查询板卡板本号及软件版本
+#define ID_RET_VERSION			0x80000036	///<RTU返回软件版本
+#define ID_CMD_TIME				0x80000037	///<网管给RTU校时
+#define ID_CMD_ACK				0x80000038	///<RTU返回应答码
+
+
+#endif // CONSTANT_H

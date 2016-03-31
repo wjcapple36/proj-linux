@@ -496,6 +496,18 @@ struct _tagCallbackPara
     int operate_num;
     _tagDevComm *buf;
 };
+/*
+ *2016-03-31
+ *该结构体与_tagCallbackPara作用相同，后期增加了可查询表记录数目的函数
+ *并且使用char 型的buf，更有通用性
+*/
+struct _tagDBCallbackPara
+{
+    int  list_num;
+    int  index;
+    char *dst_buf;
+};
+
 //数据库读取曲线的类型
 #define CURV_TYPE_CYC   0
 #define CURV_TYPE_ALARM 1

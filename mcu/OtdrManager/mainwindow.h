@@ -460,7 +460,7 @@ public:
      int ret_sms_authority(char buf[], void *ptr_opt); //返回告警短信权限
      int ret_port_infor(char buf[],void *ptr_opt);//返回关联信息
      int ret_refer_curv(char buf[],void *ptr_opt);//返回参考曲线
-     int ret_module_cascade_table(void *ptr_opt);//返回模块级联表
+     int ret_module_cascade_table(char buf[], void *ptr_opt);//返回模块级联表
      int ret_port_trigger_table(char buf[], void *ptr_opt);//返回端口触发表
      int ret_cyc_test_table(char buf[], void *ptr_opt);//返回周期性测量表
 

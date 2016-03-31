@@ -736,6 +736,43 @@ int db_read_a_trigger_b(tdb_a_trigger_b_t *output, void *ptr)
 usr_exit:
     return return_val;
 }
+/*
+   **************************************************************************************
+ *  函数名称：db_read_all_rout
+ *  函数描述：从数据库里面读取全部的路由信息的回调函数
+ *                ：
+ *  入口参数：数据库查询到的记录，查询参数结构体指针:条目总数，当前操作次数
+ *  返回参数：返回-1，从数据库中直接返回，返回0，数据库继续查找，其他为错误码
+ *  作者       ：
+ *  日期       ：
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int db_read_all_rout(tdb_route_t *output, void *ptr)
+{
+    _tagDBCallbackPara *pDBCallbackPara;
+    tms_route *prout;
+    int alreadyRead, retv;
+    retv = 0;
+    pDBCallbackPara = (_tagDBCallbackPara *)ptr;
+    alreadyRead = pDBCallbackPara->index;
+
+    if(pDBCallbackPara->index < pDBCallbackPara->list_num){
+        prout = (tms_route *)(pDBCallbackPara->list_num + sizeof(tms_route)*alreadyRead);
+        memcpy(prout, &output->ip_src, sizeof(tms_route));
+        pDBCallbackPara->index++;
+    }
+    else{
+        printf("%s(): Line : %d read db overflow  list num %d read num %d \n",  __FUNCTION__, __LINE__,\
+               pDBCallbackPara->list_num, pDBCallbackPara->index);
+    }
+
+
+    return retv;
+
+}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -6986,7 +7023,7 @@ int MainWindow::local_process_cmd(char buf[], int dataLen,int msec, void *ptr_op
     }
     else if(ID_GET_TBUNIT == pdata_head->cmd)
     {
-       // ret_sms_authority(buf,ptr_opt);//网管查询端口触发表
+        // ret_sms_authority(buf,ptr_opt);//网管查询端口触发表
     }
     else if(ID_GET_TBCYCTEST == pdata_head->cmd)
     {
@@ -7242,7 +7279,7 @@ usr_exit:
  *  函数名称：ret_module_cascade_table
  *  函数描述：命令码，0x80000088,返回模块级联表，具体内容返回0x80000054
  *                ：协议内容
- *  入口参数：buf, *ptr_opt:数据请求方的相关信息,比如fd，源地址，目的地址
+ *  入口参数：ptr_opt:数据请求方的相关信息,比如fd，源地址，目的地址
  *  返回参数：处理结果
  *  作者       ：
  *  日期       ：2016-03-31
@@ -7251,19 +7288,58 @@ usr_exit:
  *                ：
  **************************************************************************************
 */
-int MainWindow::ret_module_cascade_table(void *ptr_opt)
+int MainWindow::ret_module_cascade_table(char buf[],void *ptr_opt)
 {
-    int count;
+    int count, retv;
+    tdb_route_t condition;
+    tdb_route_t mask;
     tms_context *pcontext;
+    tms_route  *rout_buf;
+    _tagDataHead *pDataHead;
+    _tagDBCallbackPara dbCallbackPara;
+    glink_addr dst_addr;
+
+    pDataHead = (_tagDataHead *)buf;    
+    rout_buf = NULL;
     pcontext = (tms_context *)(ptr_opt);
     char sql[] = "select count() from tb_route where(1);";
+    //获取该此表有多少记录
     count =  tmsdb_Select_count(sql, NULL, NULL);
+
     if(count > 0){
-    ;
+        rout_buf = new tms_route [count];
+        if(rout_buf == NULL){
+            retv = RET_MEM_ERR;
+            goto usr_exit;
+            bzero(&dbCallbackPara, sizeof(dbCallbackPara));
+            bzero(rout_buf, sizeof(tms_route)*count);
+            dbCallbackPara.list_num = count;
+            dbCallbackPara.dst_buf = (char *)rout_buf;
+            bzero(&condition, sizeof(condition));
+            bzero(&mask, sizeof(mask));
+            tmsdb_Select_Page_route(
+                        &condition,
+                        &mask,
+                        0,
+                        count,
+                        db_read_all_rout,
+                        (void *)&dbCallbackPara);
+
+
+        }
     }
-
-
-    return 0;
+    else{
+        count = 0;
+    }
+    dst_addr.src = ADDR_MCU;
+    dst_addr.dst = pcontext->pgb->dst;
+    dst_addr.pkid = pcontext->pgb->pkid;
+    tms_TbRoute_Insert(pcontext->fd,&dst_addr,count,rout_buf);
+usr_exit:
+    if(retv != RET_SUCCESS)
+        mcu_Ack(ptr_opt, pDataHead->cmd,retv,count);
+    printf("%s(): Line : %d route total record %d  \n",  __FUNCTION__, __LINE__, count);
+    return retv;
 }
 
 /*

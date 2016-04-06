@@ -695,17 +695,20 @@ int db_read_refotdr_test_para(tdb_otdr_ref_t *output, void *ptr)
    **************************************************************************************
  *  函数名称：db_read_a_trigger_b
  *  函数描述：读取告警触发的回掉函数,第一次获取记录条目，第二次获具体的记录
- *  入口参数：返回-1，从数据库中直接返回，返回0，数据库继续查找，其他为错误码
- *  返回参数：
+ *                ：
+ *  入口参数：
+ *  返回参数：返回-1，从数据库中直接返回，返回0，数据库继续查找，其他为错误码
  *  作者       ：
  *  日期       ：
+ *  修改日期：2016-04-01 使其可以读取全部记录
+ *  修改内容：
+ *                ：
  **************************************************************************************
 */
 int db_read_a_trigger_b(tdb_a_trigger_b_t *output, void *ptr)
 {
-    int return_val;
-    int i;
-    _tagDevComm *input;
+    int return_val, i;
+    tms_unit *input;
     _tagCallbackPara *pCallbackPara;
     pCallbackPara = (_tagCallbackPara *)(ptr);
     return_val = -1;
@@ -720,20 +723,21 @@ int db_read_a_trigger_b(tdb_a_trigger_b_t *output, void *ptr)
         else if(pCallbackPara->operate_type == DB_GET_RECORD)
         {
             return_val = 0;
-            i = pCallbackPara->operate_num++;
+            i = pCallbackPara->operate_num;
             if(i < pCallbackPara->record_num)
             {
-                input = pCallbackPara->buf;
-                memcpy(&input[i], &output->frame_b,sizeof(_tagDevComm));
+                input = ( tms_unit *) pCallbackPara->buf;
+                memcpy(&input[i], &output->frame_a,sizeof(tms_unit));
 
             }
             else
             {
                 return_val = -1;
             }
+            pCallbackPara->operate_num++;
         }
     }
-usr_exit:
+
     return return_val;
 }
 /*
@@ -744,7 +748,7 @@ usr_exit:
  *  入口参数：数据库查询到的记录，查询参数结构体指针:条目总数，当前操作次数
  *  返回参数：返回-1，从数据库中直接返回，返回0，数据库继续查找，其他为错误码
  *  作者       ：
- *  日期       ：
+ *  日期       ：2016-03-31
  *  修改日期：
  *  修改内容：
  *                ：
@@ -3606,8 +3610,10 @@ int MainWindow::input_arlarm_gsm_test_queue(_tagDevComm alarmDev, int alarm_lev,
     _tagCallbackPara callbackPara;
     //指向端口测量的指针，增加代码可读性
     _tagCtrlPortTest ctrlPortTest;
+    tms_unit *trigger_buf;
 
     //初始化查询信息
+    trigger_buf = NULL;
     bzero(&db_check, sizeof(tdb_a_trigger_b_t));
     bzero(&mask, sizeof(tdb_a_trigger_b_t));
     db_check.frame_a = alarmDev.frame_no;
@@ -3629,10 +3635,12 @@ int MainWindow::input_arlarm_gsm_test_queue(_tagDevComm alarmDev, int alarm_lev,
     {
         callbackPara.operate_type = DB_GET_RECORD;
         callbackPara.operate_num = 0;
-        callbackPara.buf = new _tagDevComm[callbackPara.record_num];
-        if(callbackPara.buf == NULL)
+
+        trigger_buf = new tms_unit [callbackPara.record_num];
+        if(trigger_buf == NULL)
             goto usr_exit;
 
+        callbackPara.buf  = (char *) trigger_buf;
         db_res = tmsdb_Select_a_trigger_b(&db_check,&mask,db_read_a_trigger_b,(void *)&callbackPara);
         connect_num = callbackPara.record_num;
     }
@@ -3645,7 +3653,11 @@ int MainWindow::input_arlarm_gsm_test_queue(_tagDevComm alarmDev, int alarm_lev,
 
         for(i = 0; i < connect_num; i++)
         {
-            ctrlPortTest.test_port = callbackPara.buf[i];
+            /*
+             *2016-04-01修改，为了与读取全部表单内容相适应
+            */
+            //ctrlPortTest.test_port = callbackPara.buf[i];
+            memcpy(&ctrlPortTest.test_port, &trigger_buf[i].frame_b,  sizeof(_tagDevComm));
             ctrlPortTest.ack_to = ACK_TO_NONE;
             ctrlPortTest.cmd = ID_GET_ALARM_TEST;
             /*
@@ -3682,8 +3694,8 @@ int MainWindow::input_arlarm_gsm_test_queue(_tagDevComm alarmDev, int alarm_lev,
 
 usr_exit:
     //释放资源
-    if(callbackPara.buf != NULL)
-        delete []callbackPara.buf;
+    if(trigger_buf != NULL)
+        delete []trigger_buf;
     return connect_num;
 }
 
@@ -7299,7 +7311,7 @@ int MainWindow::ret_module_cascade_table(char buf[],void *ptr_opt)
     _tagDBCallbackPara dbCallbackPara;
     glink_addr dst_addr;
 
-    pDataHead = (_tagDataHead *)buf;    
+    pDataHead = (_tagDataHead *)buf;
     rout_buf = NULL;
     pcontext = (tms_context *)(ptr_opt);
     char sql[] = "select count() from tb_route where(1);";
@@ -7339,6 +7351,72 @@ usr_exit:
     if(retv != RET_SUCCESS)
         mcu_Ack(ptr_opt, pDataHead->cmd,retv,count);
     printf("%s(): Line : %d route total record %d  \n",  __FUNCTION__, __LINE__, count);
+    return retv;
+}
+/*
+   **************************************************************************************
+ *  函数名称：ret_port_trigger_table
+ *  函数描述：返回告警触发表.命令ID 0x80000090，响应0x80000089的请求
+ *                ：
+ *  入口参数：ptr_opt:数据请求方的相关信息,比如fd，源地址，目的地址
+ *  返回参数：处理结果
+ *  作者       ：
+ *  日期       ：2016-04-01
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int MainWindow::ret_port_trigger_table(char buf[], void *ptr_opt)
+{
+    int count, retv, db_res;
+    tdb_a_trigger_b_t db_check, mask;
+    tms_unit *trigger_buf;
+    tms_context *pcontext;
+    _tagDataHead *pDataHead;
+    _tagCallbackPara callbackPara;
+    glink_addr dst_addr;
+    char sql[] = "select count() from tb_a_trigger_b where(1);";
+
+    pDataHead = (_tagDataHead *)buf;
+    trigger_buf = NULL;
+    pcontext = (tms_context *)(ptr_opt);
+    retv = RET_SUCCESS;
+    dst_addr.src = ADDR_MCU;
+    dst_addr.dst = pcontext->pgb->src;
+    dst_addr.pkid = pcontext->pgb->pkid;
+
+    //获取该此表有多少记录
+    count =  tmsdb_Select_count(sql, NULL, NULL);
+
+    if(count > 0){
+        //初始化查询信息
+        bzero(&db_check, sizeof(tdb_a_trigger_b_t));
+        bzero(&mask, sizeof(tdb_a_trigger_b_t));
+        trigger_buf = new tms_unit [count];
+
+        if(trigger_buf == NULL){
+            retv = RET_SYS_NEW_MEM_ERR;
+            goto usr_exit;
+        }
+
+        bzero(&callbackPara, sizeof(callbackPara));
+        callbackPara.operate_type = DB_GET_RECORD;
+        callbackPara.record_num = count;
+        callbackPara.operate_num = 0;
+        callbackPara.buf = (char *) trigger_buf;
+
+        db_res = tmsdb_Select_a_trigger_b(&db_check,&mask,db_read_a_trigger_b,(void *)&callbackPara);
+
+        if(db_res != RET_SUCCESS){
+            retv = db_res;
+            goto usr_exit;
+        }
+    }
+    tms_Insert_TbUnit(pcontext->fd, &dst_addr, count , trigger_buf);
+usr_exit:
+    if(retv != RET_SUCCESS)
+        mcu_Ack(ptr_opt, pDataHead->cmd, retv, count);
     return retv;
 }
 

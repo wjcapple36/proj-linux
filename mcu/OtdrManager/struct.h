@@ -494,7 +494,7 @@ struct _tagCallbackPara
     int operate_type;   //操作类型：0，获取条目；1获取记录
     int record_num; //条目
     int operate_num;
-    _tagDevComm *buf;
+    char *buf;
 };
 /*
  *2016-03-31

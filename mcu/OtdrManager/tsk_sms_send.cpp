@@ -28,6 +28,7 @@ tsk_SMS_Send::tsk_SMS_Send(QObject *parent) :
     SmsCtrl.sucess_num = 0;
     SmsCtrl.error_num = 0;
     long_msg_serri = 0;
+    objSynSem.commu_stat = SMS_STAT_INITIAL;
 }
 //析构函数
 tsk_SMS_Send::~tsk_SMS_Send()

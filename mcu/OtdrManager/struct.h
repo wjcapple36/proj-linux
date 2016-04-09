@@ -626,11 +626,19 @@ struct _tagDevInfo
 #define GPIO_ALARM_OPEN   1
 #define GPIO_ALARM_CLOSE    0
 #define SN_LEN 128
-struct _tagDevCfg
+struct _tagDevState
 {
     char sn[SN_LEN];//SN序列号
     int gpioAlarm;//告警输出状态
     char buzzing_time[TIME_STR_LEN];
 };
+//mcu是否包含短信模块
+#define MCU_CFG_NO_SMS           0
+#define MCU_CFG_HAS_SMS         1
+struct _tagMcuCfg
+{
+    int hasSmsModule;//短信模块存在
+};
+
 #pragma pack(0) //按1个字节对齐
 #endif // STRUCT_H

@@ -23,6 +23,7 @@
 #include "protocol/tmsxx.h"
 #include "src/tmsxxdb.h"
 #include "string.h"
+#include <unistd.h>  //包含了Linux C 中的函数getcwd()
 
 //修改成全局的，方便通信类调用
 
@@ -862,7 +863,8 @@ MainWindow::MainWindow(QWidget *parent) :
     get_otdr_card_slot(0);
     //check_dev_uuid();
     refresh_card_slot_config();
-    read_dev_cfg();
+    read_dev_state();
+    read_mcu_cfg();
 
     retv = creat_other_tsk();
     if(retv != RET_SUCCESS)
@@ -941,21 +943,24 @@ int MainWindow::creat_other_tsk()
     //CTU请求任务
     pCtuAsk = new tsk_OtdrManage::tsk_OtdrManage(this);
     if(pCtuAsk == NULL)
-        goto usr_exit;
-    pCtuAsk->set_tsk_attribute(TSK_ATTRIBUTE_CTU);
-    pCtuAsk->alloca_resource(1);
+        goto usr_exit;    
     pCtuAsk->otdr_mode = OTDR_MODE_SERRI;
     //设置为MCU的板卡地址
     pCtuAsk->otdrAddr.frame_no = MCU_FRAME;
     pCtuAsk->otdrAddr.card_no = MCU_CARD;
     pCtuAsk->otdrAddr.type = OTDR;
     pCtuAsk->otdrAddr.port = 1;
+    pCtuAsk->set_tsk_attribute(TSK_ATTRIBUTE_CTU);
+    pCtuAsk->alloca_resource(1);
 
     //启动两个线程
     pDataDispatch->start();
     pHostCommu->start();
     pSockRetry->start();
+#if defined  ARM_BOARD
+    if(mcuCfg.hasSmsModule == MCU_CFG_HAS_SMS)
     pSmsSend->start();
+#endif
     pCtuAsk->start();
     retv = RET_SUCCESS;
 
@@ -1872,17 +1877,24 @@ int MainWindow::input_gsm_queue(int alarm_lev, int alarm_type, _tagDevComm *pusr
     char type_buf[32];
     char ch_time[20];
     wchar_t wmsg[GSM_TEXT_LEN]; //存放ucs-4编码
-    wchar_t wmsg_1[64]; //存放ucs-4编码
+//    wchar_t wmsg_1[64]; //存放ucs-4编码
     unsigned short msg_code[GSM_TEXT_LEN + 16]; //存放ucs-2编码
     unsigned short *ptr_uint16;
     time_t now;
     _tagGsmContext gsm_context;
     struct tm* ptr ;
     //要放在这里，否则，mbstowcs不起作用的
+    /*
     if(NULL == setlocale (LC_ALL, "zh_CN.UTF-8"))
     {
         qDebug("setlocale zh_CN.UTF-8 fail");
     }
+    */
+    if(mcuCfg.hasSmsModule == MCU_CFG_NO_SMS){
+        printf("%s(): Line : %d  no sms module ! \n",  __FUNCTION__, __LINE__);
+        return RET_SMS_EQ_NO_EXIST;
+    }
+
     //初始化
     memset(msg, 0, sizeof(msg));
     memset(wmsg, 0, sizeof(wmsg));
@@ -3796,7 +3808,7 @@ int MainWindow::dealRcvNMAskSerilNum(char buf[], void *ptr_opt)
     }
     */
     fd = tms_SelectFdByAddr(&dst_addr.dst);
-    memcpy(sn, devCfg.sn, sizeof(sn));
+    memcpy(sn, devState.sn, sizeof(sn));
     tms_RetSerialNumber ( fd,&dst_addr,&sn);
     return res_code;
 }
@@ -5929,7 +5941,8 @@ int MainWindow:: check_card_commu_state(int check_type)
 
             }
             /*DevCommuState[i][j].cur_type == MCU*/
-            else if(i== MCU_FRAME && j == MCU_CARD)
+            //2016-04-08 增加判断是否存在短信模块
+            else if(i== MCU_FRAME && j == MCU_CARD&&mcuCfg.hasSmsModule ==  MCU_CFG_HAS_SMS)
             {
                 DevCommuState[i][j].opt = 0;
                 //短信猫故障
@@ -7148,6 +7161,7 @@ int MainWindow::ret_port_infor(char buf[], void *ptr_opt)
     pcontext = (tms_context *)ptr_opt;
     pDev = (_tagDevComm *)(buf + sizeof(_tagDataHead));
     cmd = ID_CFG_MCU_OSW_PORT;
+    row = 0;
     //目的地址
     dst.pkid = pcontext->pgb->pkid;
     dst.src = ADDR_MCU;
@@ -7209,7 +7223,7 @@ usr_exit:
 */
 int MainWindow::ret_refer_curv(char buf[], void *ptr_opt)
 {
-    int ret,row,i;
+    int ret, i;
     int cmd;
     glink_addr dst;
     tms_context *pcontext;
@@ -7419,6 +7433,68 @@ usr_exit:
         mcu_Ack(ptr_opt, pDataHead->cmd, retv, count);
     return retv;
 }
+/*
+   **************************************************************************************
+ *  函数名称： ret_cyc_test_table
+ *  函数描述：协议0x80000092内容，实际返回0x80000052，网管查询周期性测量
+ *                ：表
+ *  入口参数：ptr_opt:数据请求方的相关信息,比如fd，源地址，目的地址
+ *  返回参数：处理结果
+ *  作者       ：
+ *  日期       ：2016-04-06
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int  MainWindow::ret_cyc_test_table(char buf[], void *ptr_opt)
+ {
+
+         tdb_osw_cyc_t *cfg_cyc_buf;
+         tdb_osw_cyc_t cfg_cyc, mask_cyc;
+         tms_context *pcontext;
+         tms_cyctest *plist;
+         glink_addr dst_addr;
+         _tagDataHead *pDataHead;
+         int count, ret, i;
+         ret = RET_SUCCESS;
+         pDataHead = (_tagDataHead *)(buf);
+
+         //从数据库中读取需要周期性测量的端口
+         cfg_cyc_buf = NULL;
+         pcontext = (tms_context *)ptr_opt;
+         dst_addr.src = ADDR_MCU;
+         dst_addr.dst = pcontext->pgb->src;
+         dst_addr.pkid = pcontext->pgb->pkid;
+         count = 0;
+         memset(&cfg_cyc, 0, sizeof(tdb_osw_cyc_t));
+         memset(&mask_cyc, 0, sizeof(tdb_osw_cyc_t));
+         plist = NULL;
+
+         count = tmsdb_Select_osw_cyc(&cfg_cyc, &mask_cyc, &cfg_cyc_buf);
+         if(count > 0){
+             plist = new tms_cyctest[count];
+             if(plist == NULL){
+                 ret = RET_SYS_NEW_MEM_ERR;
+                 goto usr_exit;
+             }
+             for (i = 0; i < count; i++)
+             {
+                 memcpy(&plist[i], &cfg_cyc_buf[i].frame, sizeof(tms_cyctest));
+             }
+         }
+
+          tms_Insert_TbCycTest(
+             pcontext->fd,
+             &dst_addr,
+              count,
+            plist);
+usr_exit:
+          if(ret != RET_SUCCESS)
+          {
+              mcu_Ack(ptr_opt, pDataHead->cmd,ret);
+          }
+ }
 
 /*
    **************************************************************************************
@@ -7678,7 +7754,7 @@ int MainWindow::nm_get_alarm_sound_state(char *buf, void *ptr_opt)
     addr.src = ADDR_MCU;
     addr.dst = ptr_context->pgb->src;
     addr.pkid = ptr_context->pgb->pkid;
-    tms_RetAlarmSoundState(fd,&addr,devCfg.gpioAlarm);
+    tms_RetAlarmSoundState(fd,&addr,devState.gpioAlarm);
     return 0;
 }
 
@@ -7724,9 +7800,22 @@ int MainWindow::RcvNMShorMsg(char buf[], void *ptr_opt)
         retv = RET_SMS_TEXT_VOERFLOW;
         goto usr_exit;
     }
+    /*
+     *2016-04-10 增加了短信猫不存在，正在初始化的选项
+    */
+    if(mcuCfg.hasSmsModule == MCU_CFG_NO_SMS)
+    {
+         retv = RET_SMS_EQ_NO_EXIST;
+         goto usr_exit;
+    }
     if(pSmsSend->objSynSem.commu_stat == SMS_STAT_ERROR)
     {
         retv = RET_SMS_EQ_ERROR;
+        goto usr_exit;
+    }
+    else if(pSmsSend->objSynSem.commu_stat == SMS_STAT_INITIAL)
+    {
+        retv = RET_SMS_EQ_NITIALING;
         goto usr_exit;
     }
 
@@ -7784,10 +7873,10 @@ int MainWindow::ctrl_mcu_alarm_sound(char buf[], void *ptr_opt)
     {
         res_code = RET_PARAM_INVALID;
     }
-    if(res_code == RET_SUCCESS && devCfg.gpioAlarm != val)
+    if(res_code == RET_SUCCESS && devState.gpioAlarm != val)
     {
-        devCfg.gpioAlarm = val;
-        save_dev_cfg();
+        devState.gpioAlarm = val;
+        save_dev_state();
     }
     mcu_Ack(ptr_opt,pDataHead->cmd, res_code);
 
@@ -9103,10 +9192,12 @@ int MainWindow::save_osw_port_cable_infor(char buf[], void * ptr_opt)
         wchar_t wmsg_1[64];
         char msg[256];
         unsigned short *ptr_uint16;
+        /*
         if(NULL == setlocale (LC_ALL, "zh_CN.UTF-8"))
         {
             qDebug("setlocale zh_CN.UTF-8 fail");
         }
+        */
         ptr_uint16 = (unsigned short *) posw_port_cfg->start_name;
         bzero(wmsg_1, sizeof(wmsg_1));
         utf162wcs(ptr_uint16, wmsg_1, 0);
@@ -11026,7 +11117,7 @@ int MainWindow::mcu_get_fd_by_ip(int IP)
 }
 /*
    **************************************************************************************
- *  函数名称：save_dev_cfg
+ *  函数名称：save_dev_state
  *  函数描述：保存设备的配置信息,sn 告警输出口
  *                ：
  *  入口参数：
@@ -11038,7 +11129,7 @@ int MainWindow::mcu_get_fd_by_ip(int IP)
  *                ：
  **************************************************************************************
 */
-int MainWindow::save_dev_cfg()
+int MainWindow::save_dev_state()
 {
     int retv;
     FILE *fp;
@@ -11046,7 +11137,7 @@ int MainWindow::save_dev_cfg()
     fp = fopen((char *)cfg_file_path,"wb");
     if(fp != NULL)
     {
-        fwrite(&devCfg, sizeof(devCfg),1,fp);
+        fwrite(&devState, sizeof(devState),1,fp);
         fclose(fp);
     }
     else
@@ -11054,14 +11145,14 @@ int MainWindow::save_dev_cfg()
         retv = -1;
     }
     printf("save dev cfg  alarmSatae %d  buzzing time %s retv %d sn %s \n", \
-           devCfg.gpioAlarm,devCfg.buzzing_time, retv,devCfg.sn);
+           devState.gpioAlarm,devState.buzzing_time, retv,devState.sn);
 
     return retv;
 }
 /*
    **************************************************************************************
- *  函数名称：read_dev_cfg
- *  函数描述：读取设备的配置信息
+ *  函数名称：read_dev_state
+ *  函数描述：读取设备的状态信息,包括SN号，告警输出端口状态
  *                ：
  *  入口参数：
  *  返回参数：
@@ -11072,17 +11163,17 @@ int MainWindow::save_dev_cfg()
  *                ：
  **************************************************************************************
 */
-int MainWindow::read_dev_cfg()
+int MainWindow::read_dev_state()
 {
     int retv,read_bytes;
     FILE *fp;
     retv = RET_SUCCESS;
-    bzero(&devCfg, sizeof(devCfg));
+    bzero(&devState, sizeof(devState));
     fp = fopen((char *)cfg_file_path,"rb");
     read_bytes = 0;
     if(fp != NULL)
     {
-        read_bytes = fread(&devCfg, sizeof(devCfg),1,fp);
+        read_bytes = fread(&devState, sizeof(devState),1,fp);
         fclose(fp);
     }
     else
@@ -11090,17 +11181,17 @@ int MainWindow::read_dev_cfg()
         retv = -1;
     }
     //如果读取的sn是空的
-    if(strlen(devCfg.sn) <= 0)
+    if(strlen(devState.sn) <= 0)
     {
-        create_sn(devCfg.sn);
-        save_dev_cfg();
+        create_sn(devState.sn);
+        save_dev_state();
     }
-    if(read_bytes <= 0 || devCfg.gpioAlarm != GPIO_ALARM_OPEN \
-            && devCfg.gpioAlarm != GPIO_ALARM_CLOSE)
+    if(read_bytes <= 0 || (devState.gpioAlarm != GPIO_ALARM_OPEN \
+            && devState.gpioAlarm != GPIO_ALARM_CLOSE))
     {
-        devCfg.gpioAlarm = GPIO_ALARM_OPEN;
+        devState.gpioAlarm = GPIO_ALARM_OPEN;
     }
-    printf("read cfg  read_bytes %d alarm stat %d sn %s\n", read_bytes,devCfg.gpioAlarm, devCfg.sn);
+    printf("read cfg  read_bytes %d alarm stat %d sn %s\n", read_bytes,devState.gpioAlarm, devState.sn);
     return retv;
 }
 /*
@@ -11132,6 +11223,62 @@ int MainWindow::create_sn(char sn[])
     printf("create sn %s \n", sn);
 
     return 0;
+}
+/*
+   **************************************************************************************
+ *  函数名称：read_mcu_cfg
+ *  函数描述：读取mcu配置，目前，查看是否有短信模块
+ *                ：
+ *  入口参数：
+ *  返回参数：
+ *  作者       ：
+ *  日期       ：2016-04-10
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int MainWindow::read_mcu_cfg()
+{
+    int retv, readRet;
+    char current_path[FILE_PATH_LEN + FILE_NAME_LEN];
+    char file_name[] = "/mcu.cfg";
+    char *buf;
+    FILE *fp;
+
+    fp = NULL;
+    retv = RET_SUCCESS;
+    readRet = 0;
+    bzero(&mcuCfg, sizeof(mcuCfg));
+    mcuCfg.hasSmsModule = MCU_CFG_NO_SMS;
+    buf = getcwd(current_path,FILE_PATH_LEN);
+    if(buf == NULL){
+        retv = -1;
+        goto usr_exit;
+    }
+    strcat(current_path, file_name);
+    fp = fopen((char *)current_path,"r");
+    if(fp == NULL){
+        retv = -1;
+        goto usr_exit;
+    }
+    readRet = fscanf(fp," %d", &mcuCfg.hasSmsModule);
+    if( (readRet <= 0) ||(
+            (mcuCfg.hasSmsModule != MCU_CFG_HAS_SMS) && \
+            (mcuCfg.hasSmsModule != MCU_CFG_NO_SMS)
+                )
+            )
+    {
+        printf("%s(): Line : %d  read hasSmsModul illegal %d use default \n",\
+               __FUNCTION__, __LINE__, mcuCfg.hasSmsModule);
+        mcuCfg.hasSmsModule = MCU_CFG_NO_SMS;
+    }
+    fclose(fp);
+usr_exit:
+    printf("%s(): Line : %d  current_path %s hasSmsModul %d  fp 0x%x \n",\
+           __FUNCTION__, __LINE__, current_path, mcuCfg.hasSmsModule, fp);
+
+    return retv;
 }
 /*
    **************************************************************************************

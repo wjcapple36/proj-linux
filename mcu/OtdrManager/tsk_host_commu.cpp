@@ -198,9 +198,9 @@ void tsk_host_commu::read_all_io()
         {
             char cur_time[TIME_STR_LEN];
             pMainWidow->GetCurrentTime(cur_time);
-            strcpy(pMainWidow->devCfg.buzzing_time, cur_time);
-            pMainWidow->save_dev_cfg();
-            printf("usr put silence key down ,cur time %s !\n", pMainWidow->devCfg.buzzing_time);
+            strcpy(pMainWidow->devState.buzzing_time, cur_time);
+            pMainWidow->save_dev_state();
+            printf("usr put silence key down ,cur time %s !\n", pMainWidow->devState.buzzing_time);
         }
         //比较1----19个int，电源--板卡槽位
         ret = memcmp(&mcu_stat[1],(void *)(&pMainWidow->mcu_stat[1]),19*sizeof(int));
@@ -348,7 +348,7 @@ void tsk_host_commu::check_alarm_stat()
     findNewAlarm = false;//是否有新的告警
     card_num = 0;
     char *pAlarmTime ,*pBuzzTime;
-    pBuzzTime = pMainWidow->devCfg.buzzing_time;
+    pBuzzTime = pMainWidow->devState.buzzing_time;
     //检查硬件告警
     for(i = 0; i < NUM_SUBRACK;i++)
     {
@@ -477,7 +477,7 @@ void tsk_host_commu::usr_ctrl_io()
     //告警灯    
    pMainWidow->set_io_val(PIN_LED_ALARM_TOTAL, gpioCtrl.alarm_led_val);
    //是否输出告警声音
-   if(pMainWidow->devCfg.gpioAlarm == GPIO_ALARM_OPEN)
+   if(pMainWidow->devState.gpioAlarm == GPIO_ALARM_OPEN)
    {
      pMainWidow->set_io_val(PIN_ALARM_BUZZER, gpioCtrl.alarm_output);
    }

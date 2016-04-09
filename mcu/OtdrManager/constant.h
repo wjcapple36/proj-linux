@@ -218,8 +218,8 @@ enum {PWU_V0 = 0,PWU_V48,PWU_V220 };
 #define CARD_COMPOSITION_SIZE   NUM_CARD*NUM_SUBRACK*32
 #define SOFT_VERSON_LEN         48
 //文件路径长度和文件名字长度
-#define FILE_PATH_LEN       256
-#define FILE_NAME_LEN       64
+#define FILE_PATH_LEN       128
+#define FILE_NAME_LEN       32
 //电源个数
 #define POWER_NUM   2
 #ifdef GPIO_EDITION_12

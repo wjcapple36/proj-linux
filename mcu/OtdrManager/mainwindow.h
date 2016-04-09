@@ -57,8 +57,10 @@ public:
     _tagCountTimer countTimer;
     //每个槽位的设备类型也即，对话框类型
     int m_dlgType[NUM_CARD];
-    //设备配置信息
-    _tagDevCfg devCfg;
+    //设备状态信息
+    _tagDevState devState;
+    //mcu设备组成信息
+    _tagMcuCfg mcuCfg;
     //机框组成信息
     _tagSubrackInfo m_subrackInfo;
     //板卡信息
@@ -404,10 +406,12 @@ public:
     int mcu_send_otdr_curv_to_remote(int fd, char buf[], void * ptr_opt);
     int ctu_get_curv_dst(int pkid);
     int save_data_befor_reboot();//系统重启前调用该函数
-    //保存配置文件
-    int save_dev_cfg();
-    //读取配置文件
-    int read_dev_cfg();
+    //保存保存设备状态文件
+    int save_dev_state();
+    //读取设备状态文件
+    int read_dev_state();
+    //读取mcu设备配置文件
+    int read_mcu_cfg();
     //创建sn
     int create_sn(char sn[]);
     //检测网卡

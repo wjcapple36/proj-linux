@@ -1,0 +1,4 @@
+2016-04-19 16:47:13 fuction MainWindow line 892 : 
+ hello world ! test! 
+2016-04-19 16:47:13 fuction MainWindow line 892 : 
+ hello world ! test! 

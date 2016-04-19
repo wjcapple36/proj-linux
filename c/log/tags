@@ -1,0 +1,234 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.6	//
+ACK_TOT_DLG	constant.h	104;"	d
+ACK_TO_NM	constant.h	103;"	d
+ACK_TO_NONE	constant.h	102;"	d
+ADDR_CARD	constant.h	72;"	d
+ADDR_CU	constant.h	70;"	d
+ADDR_HOST_VIP	constant.h	76;"	d
+ADDR_MASS_SEND	constant.h	78;"	d
+ADDR_MCU	constant.h	81;"	d
+ADDR_NET_MANAGER	constant.h	74;"	d
+ALARM_COMMU	constant.h	/^enum {ALARM_OPM  = 1,ALARM_LINE,ALARM_HARD_WARE,ALARM_COMMU,ALARM_OLP_SWITCH};$/;"	e	enum:__anon4
+ALARM_CURV_DEL	constant.h	270;"	d
+ALARM_DELAY_TIME_S	constant.h	277;"	d
+ALARM_HARD_WARE	constant.h	/^enum {ALARM_OPM  = 1,ALARM_LINE,ALARM_HARD_WARE,ALARM_COMMU,ALARM_OLP_SWITCH};$/;"	e	enum:__anon4
+ALARM_HW_CARD_TYPE_UN_MATCH	constant.h	185;"	d
+ALARM_HW_COMMU_ERROR	constant.h	184;"	d
+ALARM_HW_COMMU_OK	constant.h	183;"	d
+ALARM_LEVE_1	constant.h	/^enum {ALARM_NONE = 0, ALARM_LEVE_1, ALARM_LEVE_2,ALARM_LEVE_3};$/;"	e	enum:__anon6
+ALARM_LEVE_2	constant.h	/^enum {ALARM_NONE = 0, ALARM_LEVE_1, ALARM_LEVE_2,ALARM_LEVE_3};$/;"	e	enum:__anon6
+ALARM_LEVE_3	constant.h	/^enum {ALARM_NONE = 0, ALARM_LEVE_1, ALARM_LEVE_2,ALARM_LEVE_3};$/;"	e	enum:__anon6
+ALARM_LINE	constant.h	/^enum {ALARM_OPM  = 1,ALARM_LINE,ALARM_HARD_WARE,ALARM_COMMU,ALARM_OLP_SWITCH};$/;"	e	enum:__anon4
+ALARM_NONE	constant.h	/^enum {ALARM_NONE = 0, ALARM_LEVE_1, ALARM_LEVE_2,ALARM_LEVE_3};$/;"	e	enum:__anon6
+ALARM_OLP_SWITCH	constant.h	/^enum {ALARM_OPM  = 1,ALARM_LINE,ALARM_HARD_WARE,ALARM_COMMU,ALARM_OLP_SWITCH};$/;"	e	enum:__anon4
+ALARM_OPM	constant.h	/^enum {ALARM_OPM  = 1,ALARM_LINE,ALARM_HARD_WARE,ALARM_COMMU,ALARM_OLP_SWITCH};$/;"	e	enum:__anon4
+BUF_LINST_ID	constant.h	60;"	d
+BUF_LIST_SIZE	constant.h	59;"	d
+CARD_COMPOSITION_SIZE	constant.h	218;"	d
+CARD_NO_ONFIG	constant.h	22;"	d
+CARD_NO_OVERFLOW	constant.h	20;"	d
+CMD_REFRES_FRAME_CARD	constant.h	122;"	d
+COMMU_STATE_CHANGE	constant.h	181;"	d
+COMN_COM	constant.h	195;"	d
+CONFIG_BOARD	constant.h	227;"	d
+CONFIG_BOARD	constant.h	240;"	d
+CONSTANT_H	constant.h	2;"	d
+DATA_RETURN_WAIT_TIME	constant.h	107;"	d
+DB_COMM_ID_CARD_COMMP	constant.h	125;"	d
+DB_COMM_ID_FRAME_COMMP	constant.h	124;"	d
+DB_COMM_ID_HW_ALARM	constant.h	128;"	d
+DB_COMM_ID_OLP_ACTION	constant.h	127;"	d
+DB_COMM_ID_OPM_ALARM	constant.h	126;"	d
+DB_GET_RECORD	constant.h	198;"	d
+DB_GET_RECORD_NUM	constant.h	197;"	d
+DB_ID_ERROR	constant.h	131;"	d
+DB_LEN_ERROR	constant.h	132;"	d
+DB_RET_EMPTY	constant.h	135;"	d
+DB_RET_OTHSER_ERROR	constant.h	136;"	d
+DB_RET_PTR_EERO	constant.h	134;"	d
+DB_RET_SUCESS	constant.h	137;"	d
+DEV_TYPE_MAX	constant.h	51;"	d
+DEV_TYPE_MIN	constant.h	52;"	d
+EVENT_TYPE_END	constant.h	66;"	d
+EVENT_TYPE_NO_REFLEC	constant.h	65;"	d
+EVENT_TYPE_REFLEC	constant.h	64;"	d
+EVENT_TYPE_START	constant.h	63;"	d
+FILE_NAME_LEN	constant.h	222;"	d
+FILE_PATH_LEN	constant.h	221;"	d
+FRAME_CARD_NO_OK	constant.h	18;"	d
+FRAME_NO_CONFIG	constant.h	21;"	d
+FRAME_NO_OVERFLOW	constant.h	19;"	d
+GPIO_PIN_NUM	constant.h	229;"	d
+GPIO_PIN_NUM	constant.h	241;"	d
+GSM	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+HOST_NO	constant.h	11;"	d
+ID_CARD_MCU_RET_DEVTYPE	constant.h	148;"	d
+ID_CARD_MCU_RET_OPM_ALARM	constant.h	149;"	d
+ID_MCU_CARD_GET_DEVTYPE	constant.h	147;"	d
+ID_MCU_NM_RCODE_CARD_EROR	constant.h	160;"	d
+ID_MCU_NM_RCODE_CMD_EXIST	constant.h	164;"	d
+ID_MCU_NM_RCODE_CMD_INVALIDE	constant.h	168;"	d
+ID_MCU_NM_RCODE_COMMU_EROR	constant.h	158;"	d
+ID_MCU_NM_RCODE_DEV_TYPE_EROR	constant.h	161;"	d
+ID_MCU_NM_RCODE_FRAME_EROR	constant.h	159;"	d
+ID_MCU_NM_RCODE_NO_CARD	constant.h	157;"	d
+ID_MCU_NM_RCODE_OK	constant.h	156;"	d
+ID_MCU_NM_RCODE_OTDR_EROR	constant.h	165;"	d
+ID_MCU_NM_RCODE_OTDR_TIMEOUT	constant.h	166;"	d
+ID_MCU_NM_RCODE_PARA_EROR	constant.h	162;"	d
+ID_MCU_NM_RCODE_PARA_NOT_SAVE	constant.h	163;"	d
+ID_MCU_NM_RCODE_UPDATA_EROR	constant.h	167;"	d
+ID_MCU_NM_RE_CARD_TYPE	constant.h	144;"	d
+ID_MCU_NM_RE_CARD_VERSION	constant.h	145;"	d
+ID_NM_MCU_GET_CARD_TYPE	constant.h	143;"	d
+INVALID_FD	constant.h	279;"	d
+INVALID_VALUE	constant.h	55;"	d
+LINKED_BUF_NUM	constant.h	58;"	d
+MAX_EVENT_NUM	constant.h	54;"	d
+MAX_F_DB	constant.h	12;"	d
+MAX_PT_NUM	constant.h	53;"	d
+MAX_SELSPAC	constant.h	13;"	d
+MCU	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+MCU_CARD	constant.h	201;"	d
+MCU_FRAME	constant.h	200;"	d
+MSG_ALARM_COMMU	constant.h	/^enum {MSG_ALARM_FIBER = 1,MSG_ALARM_OPM,MSG_ALARM_HARDWARE,MSG_ALARM_COMMU,\\$/;"	e	enum:__anon3
+MSG_ALARM_FIBER	constant.h	/^enum {MSG_ALARM_FIBER = 1,MSG_ALARM_OPM,MSG_ALARM_HARDWARE,MSG_ALARM_COMMU,\\$/;"	e	enum:__anon3
+MSG_ALARM_HARDWARE	constant.h	/^enum {MSG_ALARM_FIBER = 1,MSG_ALARM_OPM,MSG_ALARM_HARDWARE,MSG_ALARM_COMMU,\\$/;"	e	enum:__anon3
+MSG_ALARM_LEVE1	constant.h	/^enum {MSG_ALARM_LEVE1 = 1,MSG_ALARM_LEVE2, MSG_ALARM_LEVE3,MSG_ALARM_LEVE4};$/;"	e	enum:__anon5
+MSG_ALARM_LEVE2	constant.h	/^enum {MSG_ALARM_LEVE1 = 1,MSG_ALARM_LEVE2, MSG_ALARM_LEVE3,MSG_ALARM_LEVE4};$/;"	e	enum:__anon5
+MSG_ALARM_LEVE3	constant.h	/^enum {MSG_ALARM_LEVE1 = 1,MSG_ALARM_LEVE2, MSG_ALARM_LEVE3,MSG_ALARM_LEVE4};$/;"	e	enum:__anon5
+MSG_ALARM_LEVE4	constant.h	/^enum {MSG_ALARM_LEVE1 = 1,MSG_ALARM_LEVE2, MSG_ALARM_LEVE3,MSG_ALARM_LEVE4};$/;"	e	enum:__anon5
+MSG_ALARM_LEVE_MAX	constant.h	48;"	d
+MSG_ALARM_LEVE_MIN	constant.h	47;"	d
+MSG_ALARM_OLP_SWITCH	constant.h	/^      MSG_ALARM_OLP_SWITCH};$/;"	e	enum:__anon3
+MSG_ALARM_OPM	constant.h	/^enum {MSG_ALARM_FIBER = 1,MSG_ALARM_OPM,MSG_ALARM_HARDWARE,MSG_ALARM_COMMU,\\$/;"	e	enum:__anon3
+MSG_ALARM_TYPE_MAX	constant.h	37;"	d
+MSG_ALARM_TYPE_MIN	constant.h	36;"	d
+MSG_BLOCK_SIZE	program_run_log.c	28;"	d	file:
+NM_EXIST	constant.h	120;"	d
+NM_LOST	constant.h	119;"	d
+NM_LOST_JUD_TIME	constant.h	186;"	d
+NM_PRE_LOST	constant.h	118;"	d
+NONE	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+NUM_CARD	constant.h	8;"	d
+NUM_CHAR_LOG_FUN	program_run_log.h	43;"	d
+NUM_CHAR_LOG_MSG	program_run_log.h	42;"	d
+NUM_COMM_CARD	constant.h	9;"	d
+NUM_DATE_SAVE	program_run_log.h	45;"	d
+NUM_LOG_RECORD_MAX	program_run_log.h	44;"	d
+NUM_PORT	constant.h	10;"	d
+NUM_SECOND_LOG_SAVE	program_run_log.h	46;"	d
+NUM_SUBRACK	constant.h	7;"	d
+OLP	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+OLP_SWITCH_AUTO	constant.h	215;"	d
+OLP_SWITCH_MANUE	constant.h	214;"	d
+OLP_SWITCH_RETURN	constant.h	216;"	d
+OLS	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+OPM	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+OSW	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+OSW_CONNECT_DEPTH	constant.h	189;"	d
+OSW_ROUT_EQ_NUM	constant.h	191;"	d
+OTDR	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+OTDR_MEASUR_STAGE_0	constant.h	111;"	d
+OTDR_MEASUR_STAGE_1	constant.h	113;"	d
+OTDR_MEASUR_STAGE_2	constant.h	115;"	d
+OTDR_MOD_ALARM	constant.h	88;"	d
+OTDR_MOD_APPOINT	constant.h	90;"	d
+OTDR_MOD_CYC	constant.h	92;"	d
+OTDR_MOD_IDLE	constant.h	86;"	d
+PIN_ALARM_BUZZER	constant.h	238;"	d
+PIN_ALARM_BUZZER	constant.h	250;"	d
+PIN_ALARM_SILENCE	constant.h	231;"	d
+PIN_ALARM_SILENCE	constant.h	243;"	d
+PIN_CARD_NUM	constant.h	254;"	d
+PIN_IP_SET	constant.h	230;"	d
+PIN_IP_SET	constant.h	242;"	d
+PIN_LED_ALARM_COMM	constant.h	234;"	d
+PIN_LED_ALARM_COMM	constant.h	246;"	d
+PIN_LED_ALARM_TOTAL	constant.h	232;"	d
+PIN_LED_ALARM_TOTAL	constant.h	244;"	d
+PIN_LED_RUN	constant.h	233;"	d
+PIN_LED_RUN	constant.h	245;"	d
+PIN_PW_NUM	constant.h	253;"	d
+PIN_SMS_HARD_RESET	constant.h	236;"	d
+PIN_SMS_HARD_RESET	constant.h	248;"	d
+PIN_SMS_SOFT_RESET	constant.h	235;"	d
+PIN_SMS_SOFT_RESET	constant.h	247;"	d
+PIN_SWITCH_RESET	constant.h	237;"	d
+PIN_SWITCH_RESET	constant.h	249;"	d
+PORT_CHECK	constant.h	211;"	d
+PORT_MEASUR	constant.h	212;"	d
+POWER_NUM	constant.h	224;"	d
+PROGRAM_RUN_LOG_H	program_run_log.h	19;"	d
+PULL_IN	constant.h	/^enum{ PULL_IN = 1, PULL_OUT};$/;"	e	enum:__anon2
+PULL_OUT	constant.h	/^enum{ PULL_IN = 1, PULL_OUT};$/;"	e	enum:__anon2
+PWU	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+PWU_V0	constant.h	/^enum {PWU_V0 = 0,PWU_V48,PWU_V220 };$/;"	e	enum:__anon7
+PWU_V220	constant.h	/^enum {PWU_V0 = 0,PWU_V48,PWU_V220 };$/;"	e	enum:__anon7
+PWU_V48	constant.h	/^enum {PWU_V0 = 0,PWU_V48,PWU_V220 };$/;"	e	enum:__anon7
+PW_STATE_ERROR	constant.h	256;"	d
+PW_STATE_NORMAL	constant.h	255;"	d
+REBOOT_TYPE_ABNORMAL	constant.h	263;"	d
+REBOOT_TYPE_NORMAL	constant.h	262;"	d
+RET_SUCCESS	program_run_log.h	47;"	d
+RING_BUF_SIZE	constant.h	57;"	d
+ROUT_BUF_LEN	constant.h	193;"	d
+SEM_COMMN	constant.h	99;"	d
+SEM_MCU	constant.h	100;"	d
+SEM_NUM	constant.h	95;"	d
+SEM_OTDR_DLG	constant.h	97;"	d
+SEM_OTDR_TSK	constant.h	96;"	d
+SEM_T_OSW_OLP	constant.h	98;"	d
+SEND_TYPE_ASK	constant.h	266;"	d
+SEND_TYPE_INITIATIVE	constant.h	267;"	d
+SEND_TYPE_RETRY	constant.h	268;"	d
+SHORT_MSG_LEN	constant.h	61;"	d
+SOFT_VERSON_LEN	constant.h	219;"	d
+TEST_CYC	constant.h	272;"	d
+TEST_OLP_ACTION	constant.h	275;"	d
+TEST_OPM_ALARM_AWAY	constant.h	274;"	d
+TEST_OPM_ALARM_COME	constant.h	273;"	d
+TIME_STR_LEN	constant.h	15;"	d
+TSK_INITIAL_NO	constant.h	208;"	d
+TSK_INITIAL_YES	constant.h	209;"	d
+TSK_NORMAL	constant.h	207;"	d
+TSK_WILL_DEAD	constant.h	206;"	d
+TU	constant.h	/^enum {NONE = 0, PWU, MCU, OPM, OSW, OTDR, OLS,OLP,GSM,TU};$/;"	e	enum:__anon1
+TU_CARD	constant.h	202;"	d
+UNDEFINED_ERROR	constant.h	260;"	d
+USR_DEBUG	constant.h	178;"	d
+USR_EVENT_FIND_ALARM	constant.h	204;"	d
+__anon8::function	program_run_log.h	/^    char function[NUM_CHAR_LOG_FUN]; \/\/函数名字$/;"	m	struct:__anon8	access:public
+__anon8::line	program_run_log.h	/^    int line;\/\/行数$/;"	m	struct:__anon8	access:public
+__anon8::log_msg	program_run_log.h	/^    char log_msg[NUM_CHAR_LOG_MSG]; \/\/日志信息$/;"	m	struct:__anon8	access:public
+__anon9::block_size	program_run_log.h	/^    int block_size;$/;"	m	struct:__anon9	access:public
+__anon9::cur_index	program_run_log.h	/^    int cur_index;$/;"	m	struct:__anon9	access:public
+__anon9::cur_num	program_run_log.h	/^    int cur_num;$/;"	m	struct:__anon9	access:public
+__anon9::record_max	program_run_log.h	/^    int record_max;$/;"	m	struct:__anon9	access:public
+_tagLogHead	program_run_log.h	/^}_tagLogHead;$/;"	t	typeref:struct:__anon9
+_tagLogMsg	program_run_log.h	/^}_tagLogMsg;$/;"	t	typeref:struct:__anon8
+block_size	program_run_log.h	/^    int block_size;$/;"	m	struct:__anon9	access:public
+check_log_head	program_run_log.c	/^int check_log_head( _tagLogHead log_head)$/;"	f	signature:( _tagLogHead log_head)
+clear_expiry_log	program_run_log.c	/^int clear_expiry_log()$/;"	f
+clear_expiry_log	program_run_log.h	/^int clear_expiry_log();$/;"	p
+convert_log2txt	program_run_log.c	/^int convert_log2txt(char file_path[])$/;"	f	signature:(char file_path[])
+cur_index	program_run_log.h	/^    int cur_index;$/;"	m	struct:__anon9	access:public
+cur_num	program_run_log.h	/^    int cur_num;$/;"	m	struct:__anon9	access:public
+function	program_run_log.h	/^    char function[NUM_CHAR_LOG_FUN]; \/\/函数名字$/;"	m	struct:__anon8	access:public
+get_sys_time	program_run_log.c	/^int get_sys_time(char time_buf[], int offset, const char format[])$/;"	f	signature:(char time_buf[], int offset, const char format[])
+init_log_dir	program_run_log.c	/^int init_log_dir()$/;"	f
+init_log_dir	program_run_log.h	/^int init_log_dir();$/;"	p
+line	program_run_log.h	/^    int line;\/\/行数$/;"	m	struct:__anon8	access:public
+log_msg	program_run_log.h	/^    char log_msg[NUM_CHAR_LOG_MSG]; \/\/日志信息$/;"	m	struct:__anon8	access:public
+log_path	program_run_log.c	/^const  char log_path[] = ".\/run_log\/";$/;"	v
+main	log2bin.c	/^int main()$/;"	f
+main	log2txt.c	/^int main()$/;"	f
+mutex_log	program_run_log.c	/^pthread_mutex_t mutex_log = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+outoutLog	program_run_log.c	/^int outoutLog( _tagLogMsg msg)$/;"	f	signature:( _tagLogMsg msg)
+outoutLog	program_run_log.h	/^int outoutLog( _tagLogMsg msg);$/;"	p	signature:( _tagLogMsg msg)
+record_max	program_run_log.h	/^    int record_max;$/;"	m	struct:__anon9	access:public

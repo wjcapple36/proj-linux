@@ -220,15 +220,15 @@ convert_log2txt	program_run_log.c	/^int convert_log2txt(char file_path[])$/;"	f	
 cur_index	program_run_log.h	/^    int cur_index;$/;"	m	struct:__anon9	access:public
 cur_num	program_run_log.h	/^    int cur_num;$/;"	m	struct:__anon9	access:public
 function	program_run_log.h	/^    char function[NUM_CHAR_LOG_FUN]; \/\/函数名字$/;"	m	struct:__anon8	access:public
-get_sys_time	program_run_log.c	/^int get_sys_time(char time_buf[], int offset, const char format[])$/;"	f	signature:(char time_buf[], int offset, const char format[])
+get_sys_time	program_run_log.c	/^        int get_sys_time(char time_buf[], int offset, const char format[])$/;"	f	signature:(char time_buf[], int offset, const char format[])
 init_log_dir	program_run_log.c	/^int init_log_dir()$/;"	f
 init_log_dir	program_run_log.h	/^int init_log_dir();$/;"	p
 line	program_run_log.h	/^    int line;\/\/行数$/;"	m	struct:__anon8	access:public
 log_msg	program_run_log.h	/^    char log_msg[NUM_CHAR_LOG_MSG]; \/\/日志信息$/;"	m	struct:__anon8	access:public
-log_path	program_run_log.c	/^const  char log_path[] = ".\/run_log\/";$/;"	v
+log_path	program_run_log.c	/^        const  char log_path[] = ".\/run_log\/";$/;"	v
 main	log2bin.c	/^int main()$/;"	f
 main	log2txt.c	/^int main()$/;"	f
-mutex_log	program_run_log.c	/^pthread_mutex_t mutex_log = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+mutex_log	program_run_log.c	/^        pthread_mutex_t mutex_log = PTHREAD_MUTEX_INITIALIZER;$/;"	v
 outoutLog	program_run_log.c	/^int outoutLog( _tagLogMsg msg)$/;"	f	signature:( _tagLogMsg msg)
 outoutLog	program_run_log.h	/^int outoutLog( _tagLogMsg msg);$/;"	p	signature:( _tagLogMsg msg)
 record_max	program_run_log.h	/^    int record_max;$/;"	m	struct:__anon9	access:public

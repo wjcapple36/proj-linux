@@ -34,7 +34,7 @@ int main()
                 strncpy(name_no_suffix,entry->d_name,name_len - strlen(".log\0"));
                 strptime(log_time,pFormatLog,&time_log);
                 strftime(log_time,TIME_STR_LEN,pFormatLog,&time_log);
-                convert_log2txt(entry->d_name);
+                ret = convert_log2txt(entry->d_name);
         }
         return ret;
 }

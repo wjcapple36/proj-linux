@@ -30,7 +30,7 @@
 #include "constant.h"
 #include<errno.h>
 #include <stdbool.h>
-#ifdef __cplusplus:q
+#ifdef __cplusplus
 extern "C" {
 #endif
 /*

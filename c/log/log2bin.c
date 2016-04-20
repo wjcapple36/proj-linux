@@ -9,18 +9,19 @@ int main()
 {
         int ret, i,count;
         _tagLogMsg msg;
-        count = 6000;
+        count = 5000;
         ret = RET_SUCCESS;
         strncpy((char *)(&msg.function), __FUNCTION__,NUM_CHAR_LOG_FUN);
         msg.line = __LINE__;
+        init_log_dir();
         for(i = 0; i < count;i++)
         {
                 snprintf((char *)(&msg.log_msg), NUM_CHAR_LOG_MSG,\
                                 "%d  hello word ，你好，测试，Test 123！",i);
                 outoutLog(msg);
-                system("sync");
 
         }
+        system("sync");
         return ret;
 }
 

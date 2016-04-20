@@ -28,7 +28,8 @@
 #include <sys/un.h>
 #include <pthread.h>
 #include "constant.h"
-
+#include<errno.h>
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,6 +44,7 @@ extern "C" {
 #define NUM_LOG_RECORD_MAX          5000
 #define NUM_DATE_SAVE           5           //保存几天的日志
 #define NUM_SECOND_LOG_SAVE      (NUM_DATE_SAVE *24*60*60)  //将NUM_DATE_SAVE转换成秒
+#define RET_SUCCESS 0
 typedef struct
 {
     //char time[TIME_STR_LEN]; //时间，封装到函数内部

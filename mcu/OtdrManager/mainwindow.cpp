@@ -24,6 +24,7 @@
 #include "src/tmsxxdb.h"
 #include "string.h"
 #include <unistd.h>  //包含了Linux C 中的函数getcwd()
+#include<program_run_log.h>
 
 //修改成全局的，方便通信类调用
 
@@ -850,7 +851,30 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
     //设置页面风格
-    setWindowsStyle();
+    setWindowsStyle(); 
+    //2016-04-21 将初始化部分集中处理
+    init_mcu_system();
+}
+/*
+   **************************************************************************************
+ *  函数名称：init_mcu_system
+ *  函数描述：mcu运行之前需要初始化
+ *                ：
+ *  入口参数：无
+ *  返回参数：无
+ *  作者       ：wen
+ *  日期       ：2016-04-21
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int MainWindow::init_mcu_system()
+{
+    int retv;
+    retv = RET_SUCCESS;
+    //初始化日志系统
+    init_log_dir();
     //设在秒表
     timeUpdate();
     //初始化槽位类型
@@ -887,7 +911,9 @@ MainWindow::MainWindow(QWidget *parent) :
      *2016-02-03 增加一个控制接收数据的变量
     */
     m_ctrlStat.rcvSocData = 1;
+    return retv;
 }
+
 /*
    **************************************************************************************
  *  函数名称：soft_reboot
@@ -922,7 +948,8 @@ void MainWindow::soft_reboot(int reboot_type)
 */
 int MainWindow::creat_other_tsk()
 {
-    int retv;
+    int retv;  
+    char log_msg[NUM_CHAR_LOG_MSG] = {0};
     retv = UNDEFINED_ERROR;
     //数据分发
     pDataDispatch = new tsk_dataDispatch ::tsk_dataDispatch(this);
@@ -965,6 +992,11 @@ int MainWindow::creat_other_tsk()
     retv = RET_SUCCESS;
 
 usr_exit:
+    if(retv != RET_SUCCESS)
+    {
+        snprintf(log_msg, NUM_CHAR_LOG_MSG, " %s", "new memory error !");
+        LOGW(__FUNCTION__,__LINE__, LOG_LEV_FATAL_ERRO,log_msg);
+    }
     return retv;
 }
 /*
@@ -1096,6 +1128,12 @@ void MainWindow::countTimeout()
         m_ctrlStat.NMstat = NM_LOST;
         gsm_send_alarm_NM_state(ALARM_LEVE_1);
         initialCycleTestTime();
+    }
+    //2016-04-21 检查是否清除过期日志
+    if(countTimer.count_clean_log >= COUNT_CHECK_LOG)
+    {
+        countTimer.count_clean_log = 0;
+        clear_expiry_log();
     }
 }
 /*
@@ -3617,6 +3655,7 @@ int MainWindow::input_arlarm_gsm_test_queue(_tagDevComm alarmDev, int alarm_lev,
 {
     int connect_num, i;
     int db_res;
+    char log_msg[NUM_CHAR_LOG_MSG] = {0};
 
     tdb_a_trigger_b_t db_check,mask;
     _tagCallbackPara callbackPara;
@@ -3649,13 +3688,23 @@ int MainWindow::input_arlarm_gsm_test_queue(_tagDevComm alarmDev, int alarm_lev,
         callbackPara.operate_num = 0;
 
         trigger_buf = new tms_unit [callbackPara.record_num];
-        if(trigger_buf == NULL)
+        if(trigger_buf == NULL){
+            snprintf(log_msg, NUM_CHAR_LOG_MSG, " new trigger_buf error !  errno %d", errno);
+            LOGW(__FUNCTION__,__LINE__, LOG_LEV_FATAL_ERRO,log_msg);
             goto usr_exit;
+        }
 
         callbackPara.buf  = (char *) trigger_buf;
         db_res = tmsdb_Select_a_trigger_b(&db_check,&mask,db_read_a_trigger_b,(void *)&callbackPara);
         connect_num = callbackPara.record_num;
     }
+    else{
+        snprintf(log_msg, NUM_CHAR_LOG_MSG, \
+                 " get trigger failed  db_res %d trigger num %d .frame %d card %d type %d port %d ",\
+                 db_res, callbackPara.record_num, alarmDev.frame_no, alarmDev.card_no, alarmDev.type, alarmDev.port);
+        LOGW(__FUNCTION__,__LINE__, LOG_LEV_FATAL_ERRO,log_msg);
+    }
+
 
     qDebug("connect num %d frame %d card %d port %d num %d", connect_num, \
            alarmDev.frame_no, alarmDev.card_no,alarmDev.port, callbackPara.record_num);
@@ -4809,6 +4858,7 @@ int MainWindow::dispatch_test_port(void *pTestModel, int mod)
     _tagOswRout rout;
     _tagOswRoutUnit otdrInfo;
     int res_db;
+    char log_msg[NUM_CHAR_LOG_MSG] = {0};
     res_code = 0 - RET_MODULE_ROUTE_NO_EXIST;
     bresult = false;
     res_db = 0;
@@ -4824,7 +4874,7 @@ int MainWindow::dispatch_test_port(void *pTestModel, int mod)
     }
     else
     {
-        printf("dispatch test mod ill mod %d \n",mod);
+        printf("dispatch test mod ill mod %d \n",mod);        
         goto usr_exit;
     }
     /*
@@ -4876,6 +4926,10 @@ int MainWindow::dispatch_test_port(void *pTestModel, int mod)
     }
     else
     {
+        snprintf(log_msg, NUM_CHAR_LOG_MSG, \
+                 "get module rout error! test eq  frame %d card %d type %d port %d ",\
+                 testPort.frame_no, testPort.card_no, testPort.type, testPort.port);
+        LOGW(__FUNCTION__,__LINE__, LOG_LEV_FATAL_ERRO,log_msg);
         res_code = 0 - res_code;
         goto usr_exit;
     }
@@ -7044,15 +7098,15 @@ int MainWindow::local_process_cmd(char buf[], int dataLen,int msec, void *ptr_op
     }
     else if(ID_GET_TBROUTE == pdata_head->cmd)
     {
-        //ret_sms_authority(buf,ptr_opt);//网管查询模块级联表
+        ret_module_cascade_table(buf,ptr_opt);//网管查询模块级联表
     }
     else if(ID_GET_TBUNIT == pdata_head->cmd)
     {
-        // ret_sms_authority(buf,ptr_opt);//网管查询端口触发表
+        ret_port_trigger_table(buf,ptr_opt);//网管查询端口触发表
     }
     else if(ID_GET_TBCYCTEST == pdata_head->cmd)
     {
-        ret_sms_authority(buf,ptr_opt);//网管查询周期性测量表
+        ret_cyc_test_table(buf,ptr_opt);//网管查询周期性测量表
     }
     //长度小于2k
     else if(pdata_head->dataLen <= 2048)

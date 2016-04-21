@@ -277,5 +277,7 @@ enum {PWU_V0 = 0,PWU_V48,PWU_V220 };
 #define ALARM_DELAY_TIME_S          90
 //无效fd
 #define INVALID_FD  0
+//2016-04-21检查日志的是否超过要求的条数
+#define COUNT_CHECK_LOG   7200
 
 #endif // CONSTANT_H

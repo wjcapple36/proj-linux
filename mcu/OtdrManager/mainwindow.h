@@ -42,6 +42,7 @@ struct _tagCountTimer
     int countCheckCyclTest;
     int coutUpdateDevType;
     int start_cyc_test;
+    int count_clean_log;
     QTimer *Timer;
 };
 
@@ -172,6 +173,8 @@ public:
     */
 
 public:   
+    //初始化mcu system
+    int init_mcu_system();
     //创建对话框
     void creatDlg(int curFrameShow, int cardNo);
     //更新主页面时间

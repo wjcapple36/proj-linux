@@ -1,6 +1,7 @@
 #include "tsk_sms_send.h"
 #include <math.h>
 #include "protocol/tmsxx.h"
+#include "program_run_log.h"
 /****************************************************************************************
 
 //如果要接收短信，使用信号与槽的模式来处理短消息，目前只发送，不读取短消息
@@ -62,6 +63,7 @@ void tsk_SMS_Send::run()
     wchar_t wmsg [512];
     unsigned short utf_16[512];
     int count, retv, initial_num;
+    char log_msg[NUM_CHAR_LOG_MSG] = {0};
 
     mbstowcs(wmsg,msg, strlen(msg));
     count = wcslen(wmsg);
@@ -91,6 +93,9 @@ void tsk_SMS_Send::run()
             if(retv == RET_SUCCESS)
             {                
                 objSynSem.commu_stat = SMS_STAT_OK;
+                //2016-04-21 新增日志功能
+                snprintf(log_msg, NUM_CHAR_LOG_MSG, " %s", "sms module initial ok!");
+                LOGW(__FUNCTION__,__LINE__, LOG_LEV_FATAL_ERRO,log_msg);
                 break;
             }
             else
@@ -99,6 +104,12 @@ void tsk_SMS_Send::run()
                 if(initial_num >= 10)
                 {
                     objSynSem.commu_stat = SMS_STAT_ERROR;
+                    //2016-04-21 新增日志功能
+                    if(initial_num == 10)
+                    {
+                        snprintf(log_msg, NUM_CHAR_LOG_MSG, " %s", "sms module initial failed !");
+                        LOGW(__FUNCTION__,__LINE__, LOG_LEV_FATAL_ERRO,log_msg);
+                    }
                 }
             }
         }

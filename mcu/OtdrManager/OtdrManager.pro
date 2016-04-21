@@ -93,7 +93,8 @@ SOURCES += main.cpp\
     tsk_sockretrysend.cpp \
     tsk_sms_send.cpp \
     cserialport.cpp \
-    sms_protocol.cpp
+    sms_protocol.cpp \
+    program_run_log.c
 
 HEADERS  += mainwindow.h \
     constant.h \
@@ -120,7 +121,8 @@ HEADERS  += mainwindow.h \
     sms_protocol.h \
     src/tms_gpio.h \
     src/libgpio.h \
-    src/autoconfig.h
+    src/autoconfig.h \
+    program_run_log.h
 
 FORMS    += mainwindow.ui \
     dlgotdr.ui \

@@ -3,6 +3,7 @@
 #include "qcurv.h"
 #include "math.h"
 #include "protocol/tmsxx.h"
+#include "program_run_log.h"
 
 
 tsk_OtdrManage::tsk_OtdrManage(QObject *parent) :
@@ -50,6 +51,7 @@ tsk_OtdrManage:: ~ tsk_OtdrManage()
 int tsk_OtdrManage::alloca_resource(int port_num)
 {
     int res_code;
+    char log_msg[NUM_CHAR_LOG_MSG] = {0};
     res_code = RET_SUCCESS;
     //初始化信号，队列资源
     pObjSem = NULL;
@@ -119,7 +121,13 @@ usr_exit:
         isAllocaResource = TSK_INITIAL_YES;
     }
     else
+    {
         isAllocaResource = TSK_INITIAL_NO;
+        snprintf(log_msg, NUM_CHAR_LOG_MSG,\
+                 "otdr alloca resource error frame %d card %d port %d input port %d !",\
+                 otdrAddr.frame_no, otdrAddr.card_no, otdrAddr.port, port_num);
+        LOGW(__FUNCTION__,__LINE__, LOG_LEV_FATAL_ERRO,log_msg);
+    }
     qDebug("resource allca portnum %d %d", port_num,isAllocaResource);
     qDebug("add otdr frame %d card %d port %d", otdrAddr.frame_no, otdrAddr.card_no, otdrAddr.port);
     return res_code;
@@ -289,6 +297,7 @@ int tsk_OtdrManage::getTask(_tagCtrlAppointTest *pAppointTest, int *pCmd, int po
     _tagDevComm testPort;
     int res_db;
     int res_code;
+    char log_msg[NUM_CHAR_LOG_MSG] = {0};
     res_code = -1;
     memset(&curAppointTest, 0, sizeof(curAppointTest));
     memset(&curTestPort, 0, sizeof(curTestPort));
@@ -324,7 +333,13 @@ int tsk_OtdrManage::getTask(_tagCtrlAppointTest *pAppointTest, int *pCmd, int po
                pAppointTest->para.pulseWidth_ns,pAppointTest->para.measureTime_s,\
                pAppointTest->para.n,pAppointTest->para.endThreshold, pAppointTest->para.NonRelectThreshold);
         if(res_db != RET_SUCCESS)
+        {
+            snprintf(log_msg, NUM_CHAR_LOG_MSG,\
+                     "alarm test get  para error ! frame %d  card %d  type %d port %d",\
+                     testPort.frame_no, testPort.card_no,  testPort.type,  testPort.port);
+            LOGW(__FUNCTION__,__LINE__, LOG_LEV_USUAL_ERRO,log_msg);
             res_code = -1;
+        }
         else
             res_code = RET_SUCCESS;
         memcpy(&pAppointTest->test_port, &curTestPort.test_port, sizeof(_tagDevComm)); //拷贝了测试端口，端口信息
@@ -361,7 +376,12 @@ int tsk_OtdrManage::getTask(_tagCtrlAppointTest *pAppointTest, int *pCmd, int po
         //增加告警测试原因
         pAppointTest->para.test_reason = curTestPort.test_reason;
         if(res_db != RET_SUCCESS)
+        {
+            snprintf(log_msg, NUM_CHAR_LOG_MSG,  "cyc test get  para error ! frame %d  card %d  type %d port %d",\
+                     curTestPort.test_port.frame_no, curTestPort.test_port.card_no, curTestPort.test_port.type, curTestPort.test_port.port);
+            LOGW(__FUNCTION__,__LINE__, LOG_LEV_USUAL_ERRO,log_msg);
             res_code = -1;
+        }
         else
             res_code = RET_SUCCESS;
 
@@ -384,6 +404,10 @@ int tsk_OtdrManage::getTask(_tagCtrlAppointTest *pAppointTest, int *pCmd, int po
         if(res_code != RET_SUCCESS)
         {
             printf("tsk otdr manage get rout error! \n");
+            snprintf(log_msg, NUM_CHAR_LOG_MSG,  "otdr test get rout error ! frame %d  card %d  type %d port %d",\
+                     pAppointTest->test_port.frame_no,  pAppointTest->test_port.card_no, \
+                     pAppointTest->test_port.type, pAppointTest->test_port.port);
+            LOGW(__FUNCTION__,__LINE__, LOG_LEV_USUAL_ERRO,log_msg);
             goto usr_exit;
         }
         /*
@@ -532,10 +556,11 @@ void tsk_OtdrManage::run()
         to_addr.pkid = AppointTest.opt.pkid;
         result = RET_SUCCESS;
         //输出调试信息
-        qDebug("otdr tsk  frame %d card %d  port_num %d cur_port %d otdr_mode %d, attribute %d", \
-               otdrAddr.frame_no, otdrAddr.card_no,\
+        printf("%s(): Line : %d otdr tsk  frame %d card %d  port_num %d cur_port %d otdr_mode %d, attribute %d", \
+               __FUNCTION__, __LINE__, otdrAddr.frame_no, otdrAddr.card_no,\
                otdrAddr.port, otdr_port, otdr_mode, tsk_attribute);
-        qDebug("otdr tsk  frame %d card %d  cmd %x ,src %x dst %x  pkid %d", otdrAddr.frame_no, otdrAddr.card_no,cmd,\
+        printf("%s(): Line : %d otdr tsk  frame %d card %d  cmd %x ,src %x dst %x  pkid %d", __FUNCTION__, __LINE__, \
+               otdrAddr.frame_no, otdrAddr.card_no,cmd,\
                res_addr.src, res_addr.dst, res_addr.pkid);
 
         rout_depth = osw_rout_buf[otdr_port].depth;
@@ -552,7 +577,7 @@ void tsk_OtdrManage::run()
             polp = ptest_port;
             tms_GetDevBaseByLocation(polp->frame_no, polp->card_no,&devbase);
             result = tsk_send((char *)&devbase, (char *)polp,ID_CMD_OLP_START_OTDR,cmd, otdr_port, ack_to);
-            qDebug("notify olp start %d", result);
+            printf("%s(): Line : %d notify olp start %d", __FUNCTION__, __LINE__, result);
         }
         else if(ptest_port->type == OSW)
         {
@@ -837,7 +862,7 @@ int tsk_OtdrManage::get_otdr_curv(_tagCtrlAppointTest *pAppointTest,  _tagDevCom
     }
 
 
-usr_exit :
+    //usr_exit :
     return res_code;
 }
 //通知osw开始/测量完成
@@ -847,6 +872,7 @@ int tsk_OtdrManage :: tsk_send(char devbuf[] , char buf[], unsigned int  cmd, in
     glink_addr send_addr;
     tms_devbase *pdevbase;
     tms_ack ack;
+    char log_msg[NUM_CHAR_LOG_MSG] = {0};
 
     int return_val, res_code;
     bool result;
@@ -861,7 +887,7 @@ int tsk_OtdrManage :: tsk_send(char devbuf[] , char buf[], unsigned int  cmd, in
     /*
      *2016-01-19 外面已经调用tms_GetDevBaseByLocation，重复调用会有问题
     */
-   // tms_GetDevBaseByLocation(pdevbase->frame, pdevbase->slot,pdevbase);
+    // tms_GetDevBaseByLocation(pdevbase->frame, pdevbase->slot,pdevbase);
     if(pdevbase->fd > 0)
     {
         //设置要等待的回应码
@@ -925,6 +951,13 @@ int tsk_OtdrManage :: tsk_send(char devbuf[] , char buf[], unsigned int  cmd, in
     //恢复初始值
     pobjComm[otdr_port].sendCmd = -1;
     pobjComm[otdr_port].resCmd = -1;
+    //2016-04-21 测试异常记录日志
+    if(res_code != RET_SUCCESS){
+        snprintf(log_msg, NUM_CHAR_LOG_MSG,  "%s otdr frame %d card %d type %d port num %d  teset port %d",\
+                 short_msg, otdrAddr.frame_no,  otdrAddr.card_no, otdrAddr.type, otdrAddr.port, otdr_port);
+        LOGW(__FUNCTION__,__LINE__, LOG_LEV_USUAL_ERRO,log_msg);
+    }
+
     return res_code;
 }
 //根据命令选择发送函数
@@ -1357,9 +1390,9 @@ int tsk_OtdrManage::send_test_para(_tagCtrlAppointTest *pAppointTest, \
     pObjSem[otdr_port].pkid = res_addr.pkid;
     pObjSem[otdr_port].resrvd3 = 0;
     pTestDev = &(pAppointTest->test_port);
-    //发送参数，需要根据目的地址，源地址区分曲线发到哪里    
+    //发送参数，需要根据目的地址，源地址区分曲线发到哪里
     printf("%s: Line : %d src 0x%x dst 0x%x pkid 0x%x",__FUNCTION__, __LINE__,\
-            to_addr.src, to_addr.dst, to_addr.pkid);
+           to_addr.src, to_addr.dst, to_addr.pkid);
     return_val = tms_AnyGetOTDRTest( fd,(glink_addr*)(&to_addr),pTestDev->frame_no,pTestDev->card_no, \
                                      pTestDev->type, pTestDev->port, otdr_port, \
                                      (tms_getotdr_test_param *)&pAppointTest->para, cmd);

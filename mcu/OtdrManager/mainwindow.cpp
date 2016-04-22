@@ -1106,6 +1106,7 @@ void MainWindow::countTimeout()
     showTime();
     countTimer.countCheckCyclTest++;
     countTimer.coutUpdateDevType++;
+    countTimer.count_clean_log++;
 
     if(countTimer.countCheckCyclTest == 60) //60 s检查一次周期性测量
     {

@@ -278,6 +278,6 @@ enum {PWU_V0 = 0,PWU_V48,PWU_V220 };
 //无效fd
 #define INVALID_FD  0
 //2016-04-21检查日志的是否超过要求的条数
-#define COUNT_CHECK_LOG   7200
+#define COUNT_CHECK_LOG   10
 
 #endif // CONSTANT_H

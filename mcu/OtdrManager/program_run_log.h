@@ -46,7 +46,7 @@ extern "C" {
 #define NUM_SECOND_LOG_SAVE      (NUM_DATE_SAVE *24*60*60)  //将NUM_DATE_SAVE转换成秒
 #define RET_SUCCESS 0
 //日志正常提示信息，比如登录，配置等操作
-#define LOG_LEV_USUAL _MSG          0
+#define LOG_LEV_USUAL_MSG          0
 //严重错误信息，比如分配内存失败之类的特别严重的影响程序运行的错误
 #define LOG_LEV_FATAL_ERRO    1
 //程序运行中的异常，参数检查发现问题类似

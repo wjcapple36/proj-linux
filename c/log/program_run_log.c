@@ -16,6 +16,7 @@
  **************************************************************************************
  */
 #include <time.h>
+#include <sys/stat.h>
 #include "program_run_log.h"
 #include <dirent.h>
 
@@ -25,6 +26,7 @@ extern "C" {
 #endif
         pthread_mutex_t mutex_log = PTHREAD_MUTEX_INITIALIZER;
         const  char log_path[] = "./run_log/";
+        const char log_suffix[] = ".log";
 #define MSG_BLOCK_SIZE  (sizeof(_tagLogMsg) +  TIME_STR_LEN)
         /*
          **************************************************************************************
@@ -48,7 +50,7 @@ extern "C" {
                 ret = RET_SUCCESS;
                 now = time(NULL);
                 usr_now = now - offset;
-                ptm = (struct tm *)localtime_r((const struct tm * )(&usr_now),&tm_now);
+                ptm = (struct tm *)localtime_r((const time_t * )(&usr_now),&tm_now);
                 if(ptm == NULL){
                         ret = -1;
                         goto usr_exit;
@@ -125,6 +127,68 @@ usr_exit:
 }
 /*
  **************************************************************************************
+ *  函数名称：get_log_file_num
+ *  函数描述：获取日志文件数目，同时返回修改日期最古老的文件
+ *                ：
+ *  入口参数：无
+ *  返回参数：日志文件数目，最旧的文件
+ *  作者       ：2016-04-22
+ *  日期       ：
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+ */
+int get_log_file_num(char oldest_file_path[])
+{
+        int log_file_num;
+        int name_len,ret;
+        DIR *dir_log;
+        struct dirent *entry;
+        struct stat file_stat;
+        time_t oldest_time;
+        char file_path[FILE_PATH_LEN + FILE_NAME_LEN] = {0};
+        log_file_num = 0;
+        oldest_time = time(NULL);
+        snprintf(file_path,FILE_PATH_LEN,"%s", log_path);
+        //打开文件目录
+        dir_log = opendir(log_path);
+        if(dir_log == NULL){
+                goto usr_exit;
+        }
+        //开始查看日志文件数目
+        while ((entry = readdir (dir_log)) != NULL) {
+                name_len = strlen(entry->d_name);
+                if ( (name_len > FILE_NAME_LEN) || \
+                                (NULL == strstr(entry->d_name, log_suffix) ) )
+                        continue;
+                else{
+                        log_file_num++;
+                        snprintf(file_path,FILE_PATH_LEN,"%s", log_path);
+                        strcat(file_path,entry->d_name);
+                        ret = stat(file_path,&file_stat);
+                        if(ret != 0){
+                                printf("%s(): Line : %d get file %s stat error %d \n",  \
+                                                __FUNCTION__, __LINE__,file_path,errno);
+                        }
+                        else{
+                                //posix2008版本以后，已经没有st_mtime,修改为新类型timespec
+                                //如果日志不能删除，检查这里
+                                if(oldest_time > file_stat.st_mtime){
+                                        oldest_time = file_stat.st_mtime;
+                                        strcpy(oldest_file_path,file_path);
+                                }
+                        }
+                }
+        }
+usr_exit:
+        if(dir_log != NULL)
+                closedir(dir_log);
+        return log_file_num;
+}
+
+/*
+ **************************************************************************************
  *  函数名称：clear_expiry_log
  *  函数描述：清除超过保存时限的文件
  *                ：
@@ -139,19 +203,19 @@ usr_exit:
  */
 int clear_expiry_log()
 {
-        int ret ;
+        int ret , log_num;
         char expiry_date[TIME_STR_LEN] = {0};
-        char file_path[FILE_PATH_LEN] = {0};
+        char oldest_file_path[FILE_PATH_LEN] = {0};
         ret = RET_SUCCESS;
         //日志文件以年月日命名
         const char* pFormatDate = "%Y-%m-%d";
-        ret = get_sys_time(expiry_date, NUM_SECOND_LOG_SAVE, pFormatDate);
-        if(ret == RET_SUCCESS){
-                strcat(file_path, log_path);
-                strcat(file_path, expiry_date);
-                strcat(file_path, ".txt");
-                ret = remove(file_path);
-        }
+        log_num = get_log_file_num(oldest_file_path);
+        //如果日志数目没有超过保存期限，则直接返回
+        if(log_num <= NUM_DATE_SAVE )
+                goto usr_exit;
+        ret = remove(oldest_file_path);
+
+usr_exit:
         return ret;
 }
 /*
@@ -244,7 +308,7 @@ int outoutLog( _tagLogMsg msg)
         head_size = sizeof(_tagLogHead);
         strcat(path, log_path);
         strcat(path, log_name);
-        strcat(path, ".log");
+        strcat(path, log_suffix);
         pthread_mutex_lock(&mutex_log);
         is_lock = true;
         fp = fopen(path,"rb+");
@@ -303,6 +367,32 @@ usr_exit:
 }
 /*
  **************************************************************************************
+ *  函数名称：LOGW
+ *  函数描述：写日志，根据用户输入的信息构造日志结构体，然后写日志
+ *                ：调用写日志的时候会阻塞
+ *  入口参数：调用者，函数名字，函数行，日志级别，日志信息
+ *  返回参数：写日志结果
+ *  作者       ：wen
+ *  日期       ：2016-04-21
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+ */
+int LOGW(const char function_name[], const int line, int lev, char log_msg[])
+{
+        int ret;
+        _tagLogMsg log;
+        log.line = line;
+        log.lev =lev;
+        strncpy((char *)(&log.function), function_name,NUM_CHAR_LOG_FUN);
+        snprintf((char *)(&log.log_msg), NUM_CHAR_LOG_MSG, " %s", log_msg);
+        ret = outoutLog(log);
+        return ret;
+}
+
+/*
+ **************************************************************************************
  *  函数名称：convert_log2txt
  *  函数描述：将日志里面的内容从二进制转换成txt格式
  *                ：
@@ -333,7 +423,7 @@ int convert_log2txt(char file_path[])
         ret = RET_SUCCESS;
 
         file_path_len = strlen(file_path);
-        strncpy(path, file_path, file_path_len - strlen(".log"));
+        strncpy(path, file_path, file_path_len - strlen(log_suffix));
         strcat(path, ".txt");
         pthread_mutex_lock(&mutex_log);
         is_lock = true;
@@ -365,7 +455,8 @@ int convert_log2txt(char file_path[])
                         break;
                 }
                 //保存成文本
-                fprintf(fp_txt, "%s fuction %s line %d : \n", time_buf,msg.function,msg.line);
+                fprintf(fp_txt, "%s fuction %s line %d log lev : %d: \n", \
+                                time_buf,msg.function, msg.line, msg.lev);
                 fprintf(fp_txt, " %s \n", msg.log_msg);
         }
 

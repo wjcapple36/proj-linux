@@ -45,11 +45,18 @@ extern "C" {
 #define NUM_DATE_SAVE           5           //保存几天的日志
 #define NUM_SECOND_LOG_SAVE      (NUM_DATE_SAVE *24*60*60)  //将NUM_DATE_SAVE转换成秒
 #define RET_SUCCESS 0
+//日志正常提示信息，比如登录，配置等操作
+#define LOG_LEV_USUAL_MSG          0
+//严重错误信息，比如分配内存失败之类的特别严重的影响程序运行的错误
+#define LOG_LEV_FATAL_ERRO    1
+//程序运行中的异常，参数检查发现问题类似
+#define LOG_LEV_USUAL_ERRO   2
 typedef struct
 {
     //char time[TIME_STR_LEN]; //时间，封装到函数内部
     char function[NUM_CHAR_LOG_FUN]; //函数名字
     int line;//行数
+    int lev;//日志级别
     char log_msg[NUM_CHAR_LOG_MSG]; //日志信息
 }_tagLogMsg;
 //日志头
@@ -67,6 +74,8 @@ int outoutLog( _tagLogMsg msg);
 int init_log_dir();
 //清除过期的日志
 int clear_expiry_log();
+//写日志，另一接口
+int LOGW(const char function_name[], const int line, int lev,  char log_msg[]);
 
 
 #ifdef __cplusplus

@@ -15,7 +15,7 @@ int main()
         int name_len;
         DIR *dir_log;
         struct dirent *entry;
-        time_t time_log;
+        struct tm time_log;
 
         ret = RET_SUCCESS;
         dir_log = opendir(log_path);

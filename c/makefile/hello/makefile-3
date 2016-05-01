@@ -1,0 +1,25 @@
+#hello:main.o print_hello.o
+#	cc -o hello main.o print_hello.o
+#main.o:main.c
+#	cc -c main.c
+#print_hello.o:print_hello.c print_hello.h
+#	cc -c print_hello.c
+#clean :
+#	rm main.o print_hello.o hello
+OBJ_DIR=./src
+#VPATH=src:include
+#vpath %.h include
+sources=$(wildcard ./src/*.c)
+objects=$(patsubst %.c,%.o,$(sources))
+#echo $(sources)
+hello:$(objects)
+	cc $(objects) -o hello
+%.o:%.c
+	cc -o $@ -c $^ $(CC_FLAGS) 
+
+clean:
+	-rm hello $(OBJ_DIR)/*.o
+display:
+	@echo "VPATH>>" $(VPATH)
+	@echo "sources>>"$(sources)
+	@echo "objects>>"$(objects)

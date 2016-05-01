@@ -76,6 +76,8 @@ int init_log_dir();
 int clear_expiry_log();
 //写日志，另一接口
 int LOGW(const char function_name[], const int line, int lev,  char log_msg[]);
+//获取程序自身的最后一次修改时间
+int get_self_modify_time(char time_buf[]);
 
 
 #ifdef __cplusplus

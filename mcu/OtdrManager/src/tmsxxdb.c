@@ -102,7 +102,7 @@ extern "C" {
 
 
 #ifdef ARM_BOARD
-#define DB_PATH "/etc/tmsxx.db"
+#define DB_PATH "/data/tmsxx.db"
 #else
 #define DB_PATH "/home/wjc/src-example/mcu/tmsxx.db"
 #endif

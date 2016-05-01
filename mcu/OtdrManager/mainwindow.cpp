@@ -817,6 +817,12 @@ MainWindow::MainWindow(QWidget *parent) :
     strlstOtdrPortNum <<"1";
     strlstOlpPortNum <<"3";
     strSoftVerson = "V16.02.03.12";
+    char soft_verson[TIME_STR_LEN] = {0};
+    retv = get_self_modify_time(soft_verson);
+    if(retv == RET_SUCCESS && strlen(soft_verson) > 0){
+       strSoftVerson = QString(QLatin1String(soft_verson));
+    }
+
     bzero(cfg_file_path, sizeof(cfg_file_path));
 #ifdef ARM_BOARD
     snprintf(cfg_file_path, FILE_PATH_LEN,"/etc/dev.cfg");

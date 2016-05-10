@@ -80,7 +80,7 @@ void tsk_SMS_Send::run()
     objSynSem.commu_stat = SMS_STAT_INITIAL;
     usr_delay(5);
     GSMQueue.objMutex.lock();
-    GSMQueue.xqueue.enqueue(msg_text);
+//    GSMQueue.xqueue.enqueue(msg_text);
     GSMQueue.objMutex.unlock();
     initial_num = 0;
     while (!stopped)

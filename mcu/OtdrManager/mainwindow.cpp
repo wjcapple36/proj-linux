@@ -816,13 +816,15 @@ MainWindow::MainWindow(QWidget *parent) :
     strlstDevPortNum <<"8"<<"16"<<"32"<<"64"<<"128";
     strlstOtdrPortNum <<"1";
     strlstOlpPortNum <<"3";
-    strSoftVerson = "V16.02.03.12";
+    strSoftVerson = "V16.05.10.01";
+    //Linux系统中没有创建时间的概念，复制到另外一个文件夹中，复制的时间即为修改时间，创建时间
+#if 0
     char soft_verson[TIME_STR_LEN] = {0};
     retv = get_self_modify_time(soft_verson);
     if(retv == RET_SUCCESS && strlen(soft_verson) > 0){
        strSoftVerson = QString(QLatin1String(soft_verson));
     }
-
+#endif
     bzero(cfg_file_path, sizeof(cfg_file_path));
 #ifdef ARM_BOARD
     snprintf(cfg_file_path, FILE_PATH_LEN,"/etc/dev.cfg");
@@ -1935,8 +1937,9 @@ int MainWindow::input_gsm_queue(int alarm_lev, int alarm_type, _tagDevComm *pusr
         qDebug("setlocale zh_CN.UTF-8 fail");
     }
     */
-    if(mcuCfg.hasSmsModule == MCU_CFG_NO_SMS){
-        printf("%s(): Line : %d  no sms module ! \n",  __FUNCTION__, __LINE__);
+    if(mcuCfg.hasSmsModule == MCU_CFG_NO_SMS){         
+        printf("%s(): Line : %d  no sms module ! \nalarm msg %s\n", \
+               __FUNCTION__, __LINE__, option);
         return RET_SMS_EQ_NO_EXIST;
     }
 
@@ -6045,6 +6048,10 @@ int MainWindow:: check_card_commu_state(int check_type)
             //属性不一致，比如串行otdr变成并行otdr，电源48V变成220V
             else if(DevCommuState[i][j].cur_opt[0] != m_subrackCard[i].opt[j][0])
             {
+                printf("%s(): Line : %d attrbute diff \ncurre opt[4] %d %d %d %d\nsaved opt[4] %d %d %d %d\n",  \
+                       __FUNCTION__, __LINE__,DevCommuState[i][j].cur_opt[0], DevCommuState[i][j].cur_opt[1],\
+                       DevCommuState[i][j].cur_opt[2], DevCommuState[i][j].cur_opt[3], m_subrackCard[i].opt[j][0]\
+                       ,m_subrackCard[i].opt[j][1], m_subrackCard[i].opt[j][2], m_subrackCard[i].opt[j][3]);
                 DevCommuState[i][j].opt = 0;
                 DevCommuState[i][j].cur_alarm = CARD_ALARM_ATTRIBUT_DIFF;
             }
@@ -6072,7 +6079,8 @@ int MainWindow:: check_card_commu_state(int check_type)
             if(DevCommuState[i][j].cur_alarm == CARD_ALARM_NEW)
             {
                 is_add_new_card = 1;//从未插入板卡的地方插入了信板卡
-                qDebug("new card  frame / card / type %d %d %d", i, j, DevCommuState[i][j].cur_type);
+                printf("%s(): Line : %d \nnew card  frame / card / type/port %d %d %d %d\n", \
+                       __FUNCTION__, __LINE__, i, j, DevCommuState[i][j].cur_type,DevCommuState[i][j].cur_port);
                 qDebug("new card opt[0--3] %d %d %d %d", DevCommuState[i][j].cur_opt[0],\
                        DevCommuState[i][j].cur_opt[1],DevCommuState[i][j].cur_opt[2],DevCommuState[i][j].cur_opt[3]);
                 objOperateFrameCard.lock();
@@ -11230,6 +11238,8 @@ int MainWindow::read_dev_state()
     FILE *fp;
     retv = RET_SUCCESS;
     bzero(&devState, sizeof(devState));
+    //2016-05-09 默认打开告警声音输出
+    devState.gpioAlarm = GPIO_ALARM_OPEN;
     fp = fopen((char *)cfg_file_path,"rb");
     read_bytes = 0;
     if(fp != NULL)

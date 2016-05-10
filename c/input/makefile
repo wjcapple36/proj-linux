@@ -2,7 +2,7 @@ TARGET = hello
 OBJ_PATH = .
 PREFIX_BIN =  
   
-CC = gcc 
+CC = arm-linux-gcc 
 INCLUDES = -I include  
 LIBS =  
 #CFLAGS =-Wall -Werror -O2 -g 

@@ -20,6 +20,8 @@ tsk_host_commu::tsk_host_commu(QObject *parent) :
     gpioCtrl.run_state = LED_RUN_FLICKER;
     gpioCtrl.alarm_led_val = ALARM_OUTPUT_NORMAL;
     fdWatchdog = -1;
+    //2016-05-16 停止喂狗
+    stop_dog = false;
 #ifdef ARM_BOARD
     fdWatchdog =  open("/dev/watchdog", O_WRONLY);
     printf("open watchdog fd %d \n",fdWatchdog);
@@ -129,7 +131,7 @@ void tsk_host_commu::usr_timer_initial()
 void tsk_host_commu::usr_time_out()
 {
     //喂狗
-    if(usr_counter.commCounter % 10 == 0)
+    if((usr_counter.commCounter % 10 == 0) &&(!stop_dog) )
     {
 #ifdef ARM_BOARD
         feed_watch_dog();
@@ -519,4 +521,25 @@ void tsk_host_commu::feed_watch_dog()
     }
     return ;
 
+}
+/*
+   **************************************************************************************
+ *  函数名称：stop_feed_dog
+ *  函数描述：停止喂看门狗
+ *                ：
+ *  入口参数：无
+ *  返回参数：无
+ *  作者       ：
+ *  日期       ：
+ *  修改日期：2016-05-15
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+void tsk_host_commu::stop_feed_dog()
+{
+    stop_dog = true;
+    if(fdWatchdog > 0)
+        ioctl(fdWatchdog, WDIOC_SETTIMEOUT, 1);
+    return ;
 }

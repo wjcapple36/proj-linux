@@ -137,6 +137,7 @@ public:
 
     unsigned short pkid;
     QString strSoftVerson; //软件版本号
+    _tagHwInfo hw_Info;
     int isGetOtdrPara; //是否获取Otdr模块参数
     char cfg_file_path[FILE_PATH_LEN];
     int mcu_stat[GPIO_PIN_NUM];
@@ -415,13 +416,18 @@ public:
     int read_dev_state();
     //读取mcu设备配置文件
     int read_mcu_cfg();
+    //读取硬件版本信息
+    int read_hw_version();
     //创建sn
     int create_sn(char sn[]);
     //检测网卡
     int detect_net_card(unsigned int *wlan_IP = NULL, unsigned int *lan_IP = NULL);
     //收到上层短信请求
     int RcvNMShorMsg(char buf[], void * ptr_opt);
+    //关闭对应的链接
     int clear_usr_link(int frame, int card);
+    //关闭全部连接
+    int clear_all_board_link();
     //olp发生故障，请求进行测试
     int olp_ask_test(char buf[], void *ptr_opt);       
 

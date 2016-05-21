@@ -639,6 +639,11 @@ struct _tagMcuCfg
 {
     int hasSmsModule;//短信模块存在
 };
+ struct _tagHwInfo
+ {
+    char hv[20];
+    char serri[64];
+};
 
 #pragma pack(0) //按1个字节对齐
 #endif // STRUCT_H

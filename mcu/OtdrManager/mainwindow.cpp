@@ -816,13 +816,13 @@ MainWindow::MainWindow(QWidget *parent) :
     strlstDevPortNum <<"8"<<"16"<<"32"<<"64"<<"128";
     strlstOtdrPortNum <<"1";
     strlstOlpPortNum <<"3";
-    strSoftVerson = "V16.05.10.01";
+    strSoftVerson = "V16.05.15.01";
     //Linux系统中没有创建时间的概念，复制到另外一个文件夹中，复制的时间即为修改时间，创建时间
 #if 0
     char soft_verson[TIME_STR_LEN] = {0};
     retv = get_self_modify_time(soft_verson);
     if(retv == RET_SUCCESS && strlen(soft_verson) > 0){
-       strSoftVerson = QString(QLatin1String(soft_verson));
+        strSoftVerson = QString(QLatin1String(soft_verson));
     }
 #endif
     bzero(cfg_file_path, sizeof(cfg_file_path));
@@ -859,7 +859,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
     //设置页面风格
-    setWindowsStyle(); 
+    setWindowsStyle();
     //2016-04-21 将初始化部分集中处理
     init_mcu_system();
 }
@@ -897,6 +897,7 @@ int MainWindow::init_mcu_system()
     refresh_card_slot_config();
     read_dev_state();
     read_mcu_cfg();
+    read_hw_version();
 
     retv = creat_other_tsk();
     if(retv != RET_SUCCESS)
@@ -930,16 +931,33 @@ int MainWindow::init_mcu_system()
  *  返回参数：
  *  作者       ：
  *  日期       ：2015-10-29
- *  修改日期：
- *  修改内容：
+ *  修改日期：2016-05-11
+ *  修改内容：重新启动前友好关闭板卡连接,如果重启不成功，则关闭看门狗
  **************************************************************************************
 */
 void MainWindow::soft_reboot(int reboot_type)
 {   
+    char to_log[] = {"date +\"%Y-%m-%d %H:%M:%S self test\" >> /usr/MenglongWu/bin/tmsxx.log" };
+    char kill_dog[] = {"date +\"%Y-%m-%d %H:%M:%S kill dog\" >> /usr/MenglongWu/bin/tmsxx.log" };
     printf("%s(): Line : %d reboot type %d \n",  __FUNCTION__, __LINE__,reboot_type);
-    system("sync");
+
+    system(to_log);
     sleep(5);
-    system("reboot");
+    system("sync");
+    if(pHostCommu != NULL){
+        system(kill_dog);
+        sleep(10);
+        system("sync");
+        printf("%s(): Line : %d kill dog ! \n",  __FUNCTION__, __LINE__);
+        clear_all_board_link();
+        pHostCommu->stop_feed_dog();
+        sleep(100000);
+    }
+    else{
+        printf("%s(): Line : %d reboot ! \n",  __FUNCTION__, __LINE__);
+        clear_all_board_link();
+        system("reboot");
+    }
 }
 
 /*
@@ -956,7 +974,7 @@ void MainWindow::soft_reboot(int reboot_type)
 */
 int MainWindow::creat_other_tsk()
 {
-    int retv;  
+    int retv;
     char log_msg[NUM_CHAR_LOG_MSG] = {0};
     retv = UNDEFINED_ERROR;
     //数据分发
@@ -978,7 +996,7 @@ int MainWindow::creat_other_tsk()
     //CTU请求任务
     pCtuAsk = new tsk_OtdrManage::tsk_OtdrManage(this);
     if(pCtuAsk == NULL)
-        goto usr_exit;    
+        goto usr_exit;
     pCtuAsk->otdr_mode = OTDR_MODE_SERRI;
     //设置为MCU的板卡地址
     pCtuAsk->otdrAddr.frame_no = MCU_FRAME;
@@ -994,7 +1012,7 @@ int MainWindow::creat_other_tsk()
     pSockRetry->start();
 #if defined  ARM_BOARD
     if(mcuCfg.hasSmsModule == MCU_CFG_HAS_SMS)
-    pSmsSend->start();
+        pSmsSend->start();
 #endif
     pCtuAsk->start();
     retv = RET_SUCCESS;
@@ -1924,7 +1942,7 @@ int MainWindow::input_gsm_queue(int alarm_lev, int alarm_type, _tagDevComm *pusr
     char type_buf[32];
     char ch_time[20];
     wchar_t wmsg[GSM_TEXT_LEN]; //存放ucs-4编码
-//    wchar_t wmsg_1[64]; //存放ucs-4编码
+    //    wchar_t wmsg_1[64]; //存放ucs-4编码
     unsigned short msg_code[GSM_TEXT_LEN + 16]; //存放ucs-2编码
     unsigned short *ptr_uint16;
     time_t now;
@@ -1937,7 +1955,7 @@ int MainWindow::input_gsm_queue(int alarm_lev, int alarm_type, _tagDevComm *pusr
         qDebug("setlocale zh_CN.UTF-8 fail");
     }
     */
-    if(mcuCfg.hasSmsModule == MCU_CFG_NO_SMS){         
+    if(mcuCfg.hasSmsModule == MCU_CFG_NO_SMS){
         printf("%s(): Line : %d  no sms module ! \nalarm msg %s\n", \
                __FUNCTION__, __LINE__, option);
         return RET_SMS_EQ_NO_EXIST;
@@ -4884,7 +4902,7 @@ int MainWindow::dispatch_test_port(void *pTestModel, int mod)
     }
     else
     {
-        printf("dispatch test mod ill mod %d \n",mod);        
+        printf("dispatch test mod ill mod %d \n",mod);
         goto usr_exit;
     }
     /*
@@ -7517,53 +7535,53 @@ usr_exit:
  **************************************************************************************
 */
 int  MainWindow::ret_cyc_test_table(char buf[], void *ptr_opt)
- {
+{
 
-         tdb_osw_cyc_t *cfg_cyc_buf;
-         tdb_osw_cyc_t cfg_cyc, mask_cyc;
-         tms_context *pcontext;
-         tms_cyctest *plist;
-         glink_addr dst_addr;
-         _tagDataHead *pDataHead;
-         int count, ret, i;
-         ret = RET_SUCCESS;
-         pDataHead = (_tagDataHead *)(buf);
+    tdb_osw_cyc_t *cfg_cyc_buf;
+    tdb_osw_cyc_t cfg_cyc, mask_cyc;
+    tms_context *pcontext;
+    tms_cyctest *plist;
+    glink_addr dst_addr;
+    _tagDataHead *pDataHead;
+    int count, ret, i;
+    ret = RET_SUCCESS;
+    pDataHead = (_tagDataHead *)(buf);
 
-         //从数据库中读取需要周期性测量的端口
-         cfg_cyc_buf = NULL;
-         pcontext = (tms_context *)ptr_opt;
-         dst_addr.src = ADDR_MCU;
-         dst_addr.dst = pcontext->pgb->src;
-         dst_addr.pkid = pcontext->pgb->pkid;
-         count = 0;
-         memset(&cfg_cyc, 0, sizeof(tdb_osw_cyc_t));
-         memset(&mask_cyc, 0, sizeof(tdb_osw_cyc_t));
-         plist = NULL;
+    //从数据库中读取需要周期性测量的端口
+    cfg_cyc_buf = NULL;
+    pcontext = (tms_context *)ptr_opt;
+    dst_addr.src = ADDR_MCU;
+    dst_addr.dst = pcontext->pgb->src;
+    dst_addr.pkid = pcontext->pgb->pkid;
+    count = 0;
+    memset(&cfg_cyc, 0, sizeof(tdb_osw_cyc_t));
+    memset(&mask_cyc, 0, sizeof(tdb_osw_cyc_t));
+    plist = NULL;
 
-         count = tmsdb_Select_osw_cyc(&cfg_cyc, &mask_cyc, &cfg_cyc_buf);
-         if(count > 0){
-             plist = new tms_cyctest[count];
-             if(plist == NULL){
-                 ret = RET_SYS_NEW_MEM_ERR;
-                 goto usr_exit;
-             }
-             for (i = 0; i < count; i++)
-             {
-                 memcpy(&plist[i], &cfg_cyc_buf[i].frame, sizeof(tms_cyctest));
-             }
-         }
+    count = tmsdb_Select_osw_cyc(&cfg_cyc, &mask_cyc, &cfg_cyc_buf);
+    if(count > 0){
+        plist = new tms_cyctest[count];
+        if(plist == NULL){
+            ret = RET_SYS_NEW_MEM_ERR;
+            goto usr_exit;
+        }
+        for (i = 0; i < count; i++)
+        {
+            memcpy(&plist[i], &cfg_cyc_buf[i].frame, sizeof(tms_cyctest));
+        }
+    }
 
-          tms_Insert_TbCycTest(
-             pcontext->fd,
-             &dst_addr,
-              count,
-            plist);
+    tms_Insert_TbCycTest(
+                pcontext->fd,
+                &dst_addr,
+                count,
+                plist);
 usr_exit:
-          if(ret != RET_SUCCESS)
-          {
-              mcu_Ack(ptr_opt, pDataHead->cmd,ret);
-          }
- }
+    if(ret != RET_SUCCESS)
+    {
+        mcu_Ack(ptr_opt, pDataHead->cmd,ret);
+    }
+}
 
 /*
    **************************************************************************************
@@ -7874,8 +7892,8 @@ int MainWindow::RcvNMShorMsg(char buf[], void *ptr_opt)
     */
     if(mcuCfg.hasSmsModule == MCU_CFG_NO_SMS)
     {
-         retv = RET_SMS_EQ_NO_EXIST;
-         goto usr_exit;
+        retv = RET_SMS_EQ_NO_EXIST;
+        goto usr_exit;
     }
     if(pSmsSend->objSynSem.commu_stat == SMS_STAT_ERROR)
     {
@@ -8279,6 +8297,7 @@ int MainWindow::send_verson2PC(char buf[], void * ptr_opt)
     tms_context *popt;
     _tagDevComm *pDev;
     int fd,offset;
+    char *pDate;
 
     popt = (tms_context *)ptr_opt;
     sendAddr.src = ADDR_MCU;
@@ -8314,9 +8333,20 @@ int MainWindow::send_verson2PC(char buf[], void * ptr_opt)
         hwSofgV.frame = MCU_FRAME;
         hwSofgV.slot = MCU_CARD;
         hwSofgV.type = MCU;
-        strcpy((char*)(&hwSofgV.hw_ver), "V15.08.28");
-        strcpy((char*)(&hwSofgV.date), "2015-08-28 10:37");
-        strcpy((char*)(&hwSofgV.sn), "1508281037225523");
+        //2016-05-10 硬件版本号从文件中读取，生产日期从序列号中提取
+        strcpy((char*)(&hwSofgV.hw_ver), hw_Info.hv);
+        //memcpy((char*)(&hwSofgV.date), hw_Info.serri + 4, 6);
+        pDate = (char *)(&hwSofgV.date);
+        //将字符串160515转换成 2016-05-15
+        snprintf(pDate, 5, "20%s",hw_Info.serri + 4);
+        //5包含了\0,因此下次拷贝的时候要从4位置拷贝
+        offset += 4;
+        //-05
+        snprintf(pDate + offset, 4, "-%s",hw_Info.serri  + 4 + 2);
+        offset += 3;
+        //-15
+        snprintf(pDate + offset, 4, "-%s", hw_Info.serri   + 4 + 2 + 2);
+        strcpy((char*)(&hwSofgV.sn), hw_Info.serri);
         tms_RetDevProduce(fd, &sendAddr, &hwSofgV);
         qDebug("mcu hwSoftV date %s", hwSofgV.date);
     }
@@ -11258,7 +11288,7 @@ int MainWindow::read_dev_state()
         save_dev_state();
     }
     if(read_bytes <= 0 || (devState.gpioAlarm != GPIO_ALARM_OPEN \
-            && devState.gpioAlarm != GPIO_ALARM_CLOSE))
+                           && devState.gpioAlarm != GPIO_ALARM_CLOSE))
     {
         devState.gpioAlarm = GPIO_ALARM_OPEN;
     }
@@ -11335,8 +11365,8 @@ int MainWindow::read_mcu_cfg()
     }
     readRet = fscanf(fp," %d", &mcuCfg.hasSmsModule);
     if( (readRet <= 0) ||(
-            (mcuCfg.hasSmsModule != MCU_CFG_HAS_SMS) && \
-            (mcuCfg.hasSmsModule != MCU_CFG_NO_SMS)
+                (mcuCfg.hasSmsModule != MCU_CFG_HAS_SMS) && \
+                (mcuCfg.hasSmsModule != MCU_CFG_NO_SMS)
                 )
             )
     {
@@ -11574,4 +11604,73 @@ void MainWindow::show_db_saved_alarm()
     show_total_hw_alarm();
     show_total_opm_alarm();
     show_olp_swtich_log();
+}
+/*
+   **************************************************************************************
+ *  函数名称：read_hw_version
+ *  函数描述：读取硬件版本号，序列号
+ *                ：
+ *  入口参数：
+ *  返回参数：
+ *  作者       ：
+ *  日期       ：2016-05-10
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int MainWindow::read_hw_version()
+{
+    int retv, readRet;
+    char file_name[] = "./hw_version";
+    FILE *fp;
+
+    fp = NULL;
+    retv = RET_SUCCESS;
+    readRet = 0;
+    bzero(&hw_Info, sizeof(hw_Info));
+    fp = fopen((char *)file_name,"r");
+    if(fp == NULL){
+        retv = -1;
+        goto usr_exit;
+    }
+    readRet = fscanf(fp," %s", (char *)(&hw_Info.hv));
+    readRet = fscanf(fp," %s", (char *)(&hw_Info.serri));
+    fclose(fp);
+usr_exit:
+    //如果没有读取到，则设置为空
+    if(strlen(hw_Info.hv) == 0){
+        strcpy((char *)(&hw_Info.hv), "not configed");
+    }
+    if(strlen(hw_Info.serri) == 0){
+        strcpy((char *)(&hw_Info.serri), "not configed");
+    }
+    printf("%s(): Line : %d   hw_Info.hv %s  hw_Info.serri %s \n",\
+           __FUNCTION__, __LINE__, hw_Info.hv, hw_Info.serri);
+
+    return retv;
+}
+/*
+   **************************************************************************************
+ *  函数名称：clear_all_board_link
+ *  函数描述：重启动前主动关闭全部板卡的链接
+ *                ：
+ *  入口参数：无
+ *  返回参数：0成功
+ *  作者       ：
+ *  日期       ：2016-05-11
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int MainWindow::clear_all_board_link()
+{
+    int frame, card;
+    for(frame = 0; frame < NUM_SUBRACK;frame++)
+    {
+        for(card = 0; card < NUM_COMM_CARD; card++)
+            clear_usr_link(frame, card);
+    }
+    return 0;
 }

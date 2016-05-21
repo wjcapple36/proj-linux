@@ -54,6 +54,8 @@ public:
     void usr_ctrl_io();
     //喂看门狗
     void feed_watch_dog();
+    //停止喂狗，准备重启
+    void stop_feed_dog();
 public slots:
     void usr_time_out() ;
 protected:
@@ -62,6 +64,7 @@ public:
     void stop();
 private:
     volatile bool stopped;
+    volatile bool stop_dog;
 signals:
     
 public slots:

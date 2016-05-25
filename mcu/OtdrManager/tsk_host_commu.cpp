@@ -44,6 +44,7 @@ tsk_host_commu::tsk_host_commu(QObject *parent) :
  *  日期       ：
  *  修改       ：2015-10-29 短信的内容不再在此处理，有专门的任务管理短
  *                ：信模块，不再查询总的光功告警，
+ *   修改       ：2016-05-25 输出线程号
  **************************************************************************************
 */
 void tsk_host_commu::run()
@@ -53,6 +54,8 @@ void tsk_host_commu::run()
     int alarm_curv_id;
     wait_time = 3000000;
     alarm_curv_id = 0;
+    //2016-05-25 输出线程号，与htop中的线程号对应
+    printf("%s : Line : %d  thread id %ld \n",  __FILE__, __LINE__,(long int)syscall(224));
     while (!stopped)
     {
         usleep(2000000);
@@ -540,6 +543,10 @@ void tsk_host_commu::stop_feed_dog()
 {
     stop_dog = true;
     if(fdWatchdog > 0)
-        ioctl(fdWatchdog, WDIOC_SETTIMEOUT, 1);
+    {
+        close(fdWatchdog);
+        fdWatchdog = -1;
+    }
+
     return ;
 }

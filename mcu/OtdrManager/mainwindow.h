@@ -476,7 +476,15 @@ public:
      int ret_module_cascade_table(char buf[], void *ptr_opt);//返回模块级联表
      int ret_port_trigger_table(char buf[], void *ptr_opt);//返回端口触发表
      int ret_cyc_test_table(char buf[], void *ptr_opt);//返回周期性测量表
-
+     /*
+      *********************MiniShell 终端命令响应函数*********************************
+     */
+     int shell_show_help();
+     int shell_show_hw_alarm();
+     int shell_show_opm_alarm();
+     int shell_show_olp_log();
+     int shell_show_version();
+     int shell_switch_osw();
      /*
       *************************************************************************
      */

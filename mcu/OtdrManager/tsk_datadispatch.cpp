@@ -113,6 +113,7 @@ int  tsk_dataDispatch:: filledLinkedBuf(_tagBufList *pBufHead, char bufHead[])
  *  返回参数：
  *  作者       ：
  *  日期       ：
+ *  修改       ：2016-05-25 输出线程号 线程并进行休眠
  **************************************************************************************
 */
 void tsk_dataDispatch::run()
@@ -128,6 +129,8 @@ void tsk_dataDispatch::run()
     glink_addr send_addr;
     send_addr.dst  = ADDR_NET_MANAGER;
     send_addr.src = ADDR_MCU;
+    //2016-05-25 输出线程号，与htop中的线程号对应
+    printf("%s : Line : %d  thread id %ld \n",  __FILE__, __LINE__,(long int)syscall(224));
     while (!stopped)
     {
         //阻塞，直到获取信号
@@ -157,8 +160,6 @@ void tsk_dataDispatch::run()
         m_pParent->RingBufManager.outputRingBuf(buf, sizeof(_tagDataHead));
         pDataHead = (_tagDataHead *)buf;
         //检查数据命令码是否正确
-        //qDebug("data dispatch datalen %d  Inverntory %d",\
-        //     pDataHead->dataLen ,inverntory);
         if(pDataHead->dataLen <= inverntory && inverntory > 0)
         {
             //根据数据头部计算需要段申请段缓冲区
@@ -192,6 +193,8 @@ void tsk_dataDispatch::run()
             //tms_Trace(&send_addr, msg_short, strlen(msg_short),1);
             qDebug("%s",msg_short);
         }
+        //2016-05-25 假如线程很忙，也应该释放资源，否则cpu利用率会很高
+        usleep(100);
     }
 
     stopped = false;

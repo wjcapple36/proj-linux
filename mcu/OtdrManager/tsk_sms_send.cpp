@@ -83,6 +83,8 @@ void tsk_SMS_Send::run()
 //    GSMQueue.xqueue.enqueue(msg_text);
     GSMQueue.objMutex.unlock();
     initial_num = 0;
+    //2016-05-25 输出线程号，与htop中的线程号对应
+    printf("%s : Line : %d  thread id %ld \n",  __FILE__, __LINE__,(long int)syscall(224));
     while (!stopped)
     {
         //自检部分
@@ -112,6 +114,7 @@ void tsk_SMS_Send::run()
                     }
                 }
             }
+            usleep(100);
         }
         //循环等待消息
         while(true&&!stopped)

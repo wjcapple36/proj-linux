@@ -122,7 +122,8 @@ HEADERS  += mainwindow.h \
     src/tms_gpio.h \
     src/libgpio.h \
     src/autoconfig.h \
-    program_run_log.h
+    program_run_log.h \
+    shell/shell.h
 
 FORMS    += mainwindow.ui \
     dlgotdr.ui \

@@ -5,14 +5,19 @@
 #define TIMEOUT_SEC(buflen, baud)       (buflen * 20 / baud + 2)
 #define TIMEOUT_USEC    0
 #define BAUD_DEFAUT 1
+
 /*
    **************************************************************************************
  *  函数名称：serial_read_thread
- *  函数描述：读取串口的线程
- *  入口参数：父类，串口fd
- *  返回参数：
- *  作者       ：
+ *  函数描述：读取串口
+ *                ：
+ *  入口参数：调用者的指针
+ *  返回参数：无
+ *  作者       ：wen
  *  日期       ：
+ *  修改日期：2016-05-25
+ *  修改内容：while循环中增加sleep, 否则，cpu占有率太高
+ *                ：
  **************************************************************************************
 */
 //读到0d 0a 认为是 结束
@@ -29,7 +34,9 @@ void * serial_read_thread(void * args)
     struct timeval tv;
     tv.tv_sec=30;
     tv.tv_usec=0;
-    wait_time = 200000; //200ms
+    wait_time = 2000; //2ms
+    //2016-05-25 输出线程号，与htop中的线程号对应
+    printf("%s : Line : %d  thread id %ld \n",  __FILE__, __LINE__,(long int)syscall(224));
     while(true&&pSerialPort->stopped != 1)
     {
         FD_ZERO(&rcv_fd);
@@ -68,6 +75,8 @@ void * serial_read_thread(void * args)
                     pSerialPort->pTskSMS->proc_com_data(buf, actual_size);
             }
         }
+        //2016-05-25 usleep 1ms
+        usleep(1000);
     }
     pthread_exit(NULL);
 }

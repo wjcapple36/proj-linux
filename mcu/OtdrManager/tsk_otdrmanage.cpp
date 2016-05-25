@@ -470,6 +470,7 @@ void tsk_OtdrManage::set_all_port_idle()
  *  返回参数：
  *  作者       ：
  *  日期       ：
+ *  修改       ：2016-05-25 输出线程号
  **************************************************************************************
 */
 void tsk_OtdrManage::run()
@@ -500,6 +501,8 @@ void tsk_OtdrManage::run()
     send_addr.src = ADDR_MCU;
     send_addr.dst = ADDR_NET_MANAGER;
     otdr_port = 0;
+    //2016-05-25 输出线程号，与htop中的线程号对应
+    printf("%s : Line : %d  thread id %ld \n",  __FILE__, __LINE__,(long int)syscall(224));
     while (!stopped)
     {
         //如果资源还未分配，那就重复等待
@@ -541,6 +544,11 @@ void tsk_OtdrManage::run()
         {
             usleep(10000);
             continue;
+        }
+        else
+        {
+            //2016-05-25 释放资源，否则cpu占有率很高本任务数目有otdr数目决定，比较耗资源
+             usleep(100);
         }
         //下面是具体的操作，通知olp，切换光开关，发送测量参数
         res_code.res_cmd = cmd;

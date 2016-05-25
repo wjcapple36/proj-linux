@@ -42,9 +42,10 @@ void tsk_waitOtdrCurv:: run()
     ptrPortStateBuf = pOtdrManager->port_state_buf;
     ptrObjSem = pOtdrManager->pObjSem;
     wait_time = 100;//每次等待的时间
-    qDebug("waitOtdrCurv wordking frame %d card %d", \
+    qDebug("waitOtdrCurv LINE : %d wordking frame %d card %d", __LINE__,\
            pOtdrManager->otdrAddr.frame_no, pOtdrManager->otdrAddr.card_no);
-
+    //2016-05-25 输出线程号，与htop中的线程号对应
+    printf("%s : Line : %d  thread id %ld \n",  __FILE__, __LINE__,(long int)syscall(224));
     while(!stopped)
     {
 //        qDebug("list count %d frame %d card %d", pWaitPortQue->xlist.count(),pOtdrManager->otdrAddr.frame_no, \
@@ -112,10 +113,9 @@ void tsk_waitOtdrCurv:: run()
                 }
             }
         }
-        else
-        {
-            usleep(1000);
-        }
+        //2016-05-25 防止CPU占有率过高
+        usleep(1000);
+
     }
 }
 /*

@@ -30,6 +30,55 @@
 
 MainWindow *pmain_window = NULL;
 extern struct ep_t ep;
+#ifdef __cplusplus
+extern "C" {
+#endif
+/*
+   **************************************************************************************
+ *  函数名称：sendcmd_to_wjc
+ *  函数描述：读取终端输入的命令并进行处理
+ *                ：
+ *  入口参数：argc 参数个数，argv 存放参数的字符串
+ *  返回参数：无
+ *  作者       ：wen
+ *  日期       ：2016-05-25
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int sendcmd_to_wjc(int argc, char **argv)
+{
+    //如果即将重启则不处理该命令
+    if(1 == pmain_window->m_ctrlStat.will_reboot ||\
+            0 == pmain_window->m_ctrlStat.rcvSocData)
+       goto usr_exit;
+    if(argc < 2)
+    {
+        printf(" para to less argc %d  %s \n",  argc, argv[0]);
+        goto usr_exit;
+    }
+
+    if(strcmp(argv[1], "show_hw_alarm") == 0)
+        pmain_window->shell_show_hw_alarm();
+    else if(strcmp(argv[1], "show_opm_alarm") == 0)
+        pmain_window->shell_show_opm_alarm();
+    else if(strcmp(argv[1], "show_olp_log") == 0)
+        pmain_window->shell_show_olp_log();
+    else if(strcmp(argv[1], "show_version") == 0)
+        pmain_window->shell_show_version();
+    else
+    {
+        printf(" not support services argc %d  %s \n", argc, argv[1]);
+        pmain_window->shell_show_help();
+    }
+
+usr_exit:
+    return 0;
+}
+#ifdef __cplusplus
+}
+#endif
 /*
    **************************************************************************************
  *  函数名称：process_data_from_sock
@@ -62,6 +111,7 @@ int  process_data_from_sock(char buf[], int dataLen, int msec, void *ptr_option)
 
 usr_exit:    return returnValue;
 }
+
 /*
    **************************************************************************************
  *  函数名称：dlg_send,全局函数，因为所有对话框都要调用，所以定义成全局
@@ -816,7 +866,7 @@ MainWindow::MainWindow(QWidget *parent) :
     strlstDevPortNum <<"8"<<"16"<<"32"<<"64"<<"128";
     strlstOtdrPortNum <<"1";
     strlstOlpPortNum <<"3";
-    strSoftVerson = "V16.05.15.01";
+    strSoftVerson = "V16.05.25.01";
     //Linux系统中没有创建时间的概念，复制到另外一个文件夹中，复制的时间即为修改时间，创建时间
 #if 0
     char soft_verson[TIME_STR_LEN] = {0};
@@ -951,6 +1001,7 @@ void MainWindow::soft_reboot(int reboot_type)
         printf("%s(): Line : %d kill dog ! \n",  __FUNCTION__, __LINE__);
         clear_all_board_link();
         pHostCommu->stop_feed_dog();
+         system("reboot");
         sleep(100000);
     }
     else{
@@ -3381,14 +3432,15 @@ int MainWindow::db_save_total_opm_alarm()
         }
         byte_size += (sizeof(int) * 5) + sizeof(_tagLOpmAlarmUit) * frameCardOpm.alarmArray.size();
     }
+    //2016-05-24 增加判断语句，逻辑更合理
+    if(byte_size <= 0)
+        goto usr_exit;
 
-    if(byte_size > 0 )
-    {
-        buf = new char [byte_size];
-    }
+    buf = new char [byte_size];
+
     if( buf == NULL)
-    {
-        qDebug("db save total opm alarm allocal buf error size %d", byte_size);
+    {        
+        printf("%s(): Line : %d allocal buf error size %d \n",  __FUNCTION__, __LINE__, byte_size);
         goto usr_exit;
     }
     //开始拷贝数据
@@ -6066,6 +6118,10 @@ int MainWindow:: check_card_commu_state(int check_type)
             //属性不一致，比如串行otdr变成并行otdr，电源48V变成220V
             else if(DevCommuState[i][j].cur_opt[0] != m_subrackCard[i].opt[j][0])
             {
+                printf("%s(): Line : %d attrbute diff  frame card  %d %d\ncurre   type port %d %d\nsaved  type port  %d %d\n",  \
+                       __FUNCTION__, __LINE__,i, j,DevCommuState[i][j].cur_type,DevCommuState[i][j].cur_port,\
+                       m_subrackCard[i].type[j], m_subrackCard[i].ports[j]);
+
                 printf("%s(): Line : %d attrbute diff \ncurre opt[4] %d %d %d %d\nsaved opt[4] %d %d %d %d\n",  \
                        __FUNCTION__, __LINE__,DevCommuState[i][j].cur_opt[0], DevCommuState[i][j].cur_opt[1],\
                        DevCommuState[i][j].cur_opt[2], DevCommuState[i][j].cur_opt[3], m_subrackCard[i].opt[j][0]\
@@ -6085,7 +6141,7 @@ int MainWindow:: check_card_commu_state(int check_type)
             //告警恢复，新增板卡，电源正常，都不是告警
             if(
                     (m_subrackCard[i].type[j] != NONE || \
-                     m_subrackCard[i].type[j] == NONE&&DevCommuState[i][j].card_state == PULL_IN)\
+                     (m_subrackCard[i].type[j] == NONE&&DevCommuState[i][j].card_state == PULL_IN))\
                     &&\
                     (DevCommuState[i][j].cur_alarm != CARD_ALARM_RECOVER || \
                      DevCommuState[i][j].cur_alarm  != CARD_ALARM_NEW ||\
@@ -6546,6 +6602,7 @@ int MainWindow::check_is_hw_alarm(int alarm_reason)
     //告警恢复，电源正常均不认为是告警
     if(
             (alarm_reason == CARD_ALARM_RECOVER) ||\
+            (alarm_reason == CARD_ALARM_NEW) ||\
             (alarm_reason == CARD_ALARM_POWER_NORMAL)
             )
     {
@@ -10581,6 +10638,7 @@ int MainWindow::deal_db_alarm_curv(int db_id, int type, int pkid)
                 goto usr_exit;
             dst_addr.src = ADDR_MCU;
             dst_addr.dst = ADDR_HOST_VIP;
+            nm_fd = tms_SelectFdByAddr(&dst_addr.dst);
             if(pkid == -1)
             {
                 printf("retry alarm curv pkid error %d \n", pkid);
@@ -11485,8 +11543,8 @@ usr_exit:
  *  返回参数：
  *  作者       ：
  *  日期       ：2016-02-02
- *  修改日期：
- *  修改内容：
+ *  修改日期：2016-05-24
+ *  修改内容：增加了锁
  *                ：
  **************************************************************************************
 */
@@ -11495,6 +11553,7 @@ void MainWindow::show_total_hw_alarm()
     int i,j, type,port_num;
     int IsAlarm;
     printf("%s(): Line : %d  \n", __FUNCTION__, __LINE__);
+    objHwAlarm.lock();
     for(i = 0;i < NUM_SUBRACK;i++)
     {
         for(j = 0; j < NUM_CARD;j++)
@@ -11504,11 +11563,13 @@ void MainWindow::show_total_hw_alarm()
             {
                 type = DevCommuState[i][j].cur_type;
                 port_num = DevCommuState[i][j].cur_port;
-                printf("%s(): Line : %d  frame %d card %d type %d port %d cur_alarm %d time %s \n",\
-                       __FUNCTION__, __LINE__,i,j,type,port_num,DevCommuState[i][j].cur_alarm,DevCommuState[i][j].alarm_time);
+                printf("frame %d card %d type %d port %d cur_alarm %d time %s \n",\
+                       i, j, type, port_num, DevCommuState[i][j].cur_alarm, DevCommuState[i][j].alarm_time);
+
             }
         }
     }
+    objHwAlarm.unlock();
     return ;
 }
 /*
@@ -11520,8 +11581,8 @@ void MainWindow::show_total_hw_alarm()
  *  返回参数：
  *  作者       ：
  *  日期       ：2016-02-02
- *  修改日期：
- *  修改内容：
+ *  修改日期：2016-05-24
+ *  修改内容：告警输出部分增加输出光功 告警级别
  *                ：
  **************************************************************************************
 */
@@ -11529,7 +11590,9 @@ void  MainWindow::show_total_opm_alarm()
 {
     int i,j,cur_alarm_num;
     int frame, card, type, port_num;
+    int lev, power;
     printf("%s(): Line : %d  list size %d \n",  __FUNCTION__, __LINE__,total_opm_alarm.OpmList.size());
+    total_opm_alarm.mutexBoj.lock();
     for( i = 0; i< total_opm_alarm.OpmList.size();i++)
     {
         cur_alarm_num = total_opm_alarm.OpmList[i].cur_alarm_num;
@@ -11541,11 +11604,18 @@ void  MainWindow::show_total_opm_alarm()
                __FUNCTION__, __LINE__,frame, card ,type,port_num);
         for(j = 0;j < total_opm_alarm.OpmList[i].alarmArray.size();j++)
         {
-            if(total_opm_alarm.OpmList[i].alarmArray[j].lev != ALARM_NONE)
-                printf(" come time %s \n",total_opm_alarm.OpmList[i].alarmArray[j].come_time);
+            lev = total_opm_alarm.OpmList[i].alarmArray[j].lev;
+            //2016-05-24 增加告警级别 功率
+            if( lev != ALARM_NONE)
+            {
+                power = total_opm_alarm.OpmList[i].alarmArray[j].power;
+                printf(" alarm lev  %d   power %d   come time %s \n", lev, power,\
+                       total_opm_alarm.OpmList[i].alarmArray[j].come_time);
+            }
 
         }
     }
+    total_opm_alarm.mutexBoj.unlock();
     return ;
 }
 /*
@@ -11567,6 +11637,7 @@ void  MainWindow::show_olp_swtich_log()
     int i, frame, card ,type,port;
     printf("%s(): Line : %d  size %d log num %d \n",  \
            __FUNCTION__, __LINE__,OlpActionRecordBuf.list.size(),OlpActionRecordBuf.cur_total_record);
+    OlpActionRecordBuf.obj.lock();
     for(i = 0; i < OlpActionRecordBuf.list.size();i++)
     {
         if(i < OlpActionRecordBuf.cur_total_record)
@@ -11583,6 +11654,7 @@ void  MainWindow::show_olp_swtich_log()
             break;
         }
     }
+    OlpActionRecordBuf.obj.unlock();
     return ;
 }
 /*
@@ -11672,5 +11744,60 @@ int MainWindow::clear_all_board_link()
         for(card = 0; card < NUM_COMM_CARD; card++)
             clear_usr_link(frame, card);
     }
+    return 0;
+}
+/*
+   **************************************************************************************
+ *  函数名称：shell_show_help
+ *  函数描述：显示帮助信息
+ *                ：
+ *  入口参数：无
+ *  返回参数：
+ *  作者       ：wen
+ *  日期       ：2016-05-24
+ *  修改日期：
+ *  修改内容：
+ *                ：
+ **************************************************************************************
+*/
+int MainWindow::shell_show_help()
+{
+    printf("wjc support  several services ,bellow is command : \n");
+    printf("show_hw_alarm  \n");
+    printf("show_opm_alarm \n");
+    printf("show_olp_log \n");
+    printf("show_version \n");
+    //printf("switch_osw  \n");
+    return 0;
+}
+
+int MainWindow::shell_show_hw_alarm()
+{
+    show_total_hw_alarm();
+    return 0;
+}
+int MainWindow::shell_show_opm_alarm()
+{
+    show_total_opm_alarm();
+    return 0;
+}
+int MainWindow::shell_show_olp_log()
+{
+    show_olp_swtich_log();
+    return 0;
+}
+int MainWindow::shell_show_version()
+{
+    char softV[48];
+    QByteArray byteArry;
+    byteArry = strSoftVerson.toLocal8Bit();
+    bzero(softV, sizeof(softV));
+   // snprintf(softV, sizeof(softV), "%s\0", byteArry);
+    strcpy(softV, byteArry);
+    printf("soft version %s \nhardward version / serrri %s / %s \n",softV, hw_Info.hv,  hw_Info.serri);
+    return 0;
+}
+int MainWindow::shell_switch_osw()
+{
     return 0;
 }

@@ -102,7 +102,8 @@ int cmd_epsend(int argc, char **argv);
 int cmd_testnetpacket(int argc, char **argv);
 int cmd_testnetpacket_file(int argc, char **argv);
 // W_BOOT_CMD(epsend,cmd_epsend,"cmd epoll server send");
-
+// int sendcmd_to_wjc(int argc, char **argv);
+int sendcmd_to_wjc(int argc, char **argv);
 #define INIT_CMD \
 		{(char*)"epsend",cmd_epsend,(char*)" set ip"}, \
 		{(char*)"sip",cmd_sip,(char*)" set ip"}, \
@@ -118,6 +119,7 @@ int cmd_testnetpacket_file(int argc, char **argv);
 		{(char*)"connect",cmd_Connect,(char*)"shell help"}, \
 		{(char*)"close",cmd_Close,(char*)"shell help"}, \
 		\
+		{(char*)"wjc",sendcmd_to_wjc,(char*)"shell db"}, \
 		{(char*)"sql",cmd_sql,(char*)"call sqlite3 console"}, \
 		{(char*)"dbselect",cmd_select,(char*)"Datebase select tmsxxdb"}, \
 		{(char*)"dbdelete",cmd_delete,(char*)"Datebase delete tmsxxdb"}, \
@@ -140,7 +142,7 @@ int cmd_testnetpacket_file(int argc, char **argv);
 		{(char*)"tnp",cmd_testnetpacket,(char*)"Test net packet id"}, \
 		{(char*)"tnpf",cmd_testnetpacket_file,(char*)"Test net packet id"}, \
 		{(char*)"display",cmd_Disp,(char*)"Display current system information"} 
-
+		
 
 		
 // {"inf",NULL,},

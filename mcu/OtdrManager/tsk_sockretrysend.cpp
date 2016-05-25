@@ -175,7 +175,8 @@ void tsk_SockRetrySend::run()
     unsigned long  wait_time;
     wait_time = 100;
     int retv;
-
+    //2016-05-25 输出线程号，与htop中的线程号对应
+    printf("%s : Line : %d  thread id %ld \n",  __FILE__, __LINE__,(long int)syscall(224));
     while (!stopped)
     {
         retv = wait_response();
@@ -183,6 +184,8 @@ void tsk_SockRetrySend::run()
         {
             rcv_response();
         }
+        //2016-05-25防止cpu占用率过高
+        usleep(100);
     }
 
     stopped = false;
